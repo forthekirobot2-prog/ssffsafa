@@ -35,7 +35,7 @@ using json = nlohmann::json;
 #define WM_WEBVIEW_UPDATE (WM_USER + 101)
 
 
-std::wstring CHEAT_NAME = L"Example";
+std::wstring CHEAT_NAME = L"Xlority Client";
 const std::wstring MC_VERSION = L"1.21.11";
 const std::wstring FABRIC_PROFILE_FALLBACK = L"Fabric " + MC_VERSION;
 const std::wstring FABRIC_LOADER_FALLBACK = L"0.18.6";
@@ -1156,22 +1156,19 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     g_DarkTheme = saved.darkTheme; g_LangRu = saved.langRu; g_RamAmount = saved.ram;
     g_HasSavedPrefs = saved.hasPrefs; g_Nickname = saved.nickname;
 
-    std::wstring themeColor = L"#7BCC87";
-    std::wstring themeColorRgb = L"123, 204, 135";
-    std::wstring cheatNameUpper = CHEAT_NAME;
-    std::transform(cheatNameUpper.begin(), cheatNameUpper.end(), cheatNameUpper.begin(), ::towupper);
+    std::wstring cheatNameDisplay = CHEAT_NAME;
 
     std::wstring css1 = LR"CSS(
 <style>
-:root{--green:)CSS" + themeColor + LR"CSS(;--bg:#111;--bg-dark:#050505;--bg-light:#F5F5F5;--bg-light-card:#FFF;--border:#2C2B2B;--border-light:#E0E0E0;--text-white:#FFF;--text-dark:#111;--orange:#FF9D00;--red:#FF6200;--btn-red:#D93025;--theme-rgb:)CSS" + themeColorRgb + LR"CSS(;--main-w:382px;--extra-w:220px;}
+:root{--green:#FFFFFF;--bg:#000000;--bg-dark:#000000;--bg-light:#F5F5F5;--bg-light-card:#FFF;--border:#1E1E1E;--border-light:#DADADA;--text-white:#FFF;--text-dark:#0B0B0B;--orange:#FFB000;--red:#FF6A00;--btn-red:#D93025;--theme-rgb:255,255,255;--accent-dark:#FFFFFF;--accent-light:#000000;--main-w:382px;--extra-w:220px;}
 *{box-sizing:border-box;}
-body{margin:0;padding:0;display:flex;justify-content:flex-start;align-items:center;height:100vh;font-family:'Montserrat',sans-serif;overflow:hidden;user-select:none;transition:background-color .4s;}
-body.dark{background-color:var(--bg-dark);color:var(--text-white);}
-body.light{background-color:var(--bg-light);color:var(--text-dark);}
+body{margin:0;padding:0;display:flex;justify-content:flex-start;align-items:center;height:100vh;font-family:'Montserrat',sans-serif;overflow:hidden;user-select:none;transition:background-color .4s,color .4s;}
+body.dark{--green:var(--accent-dark);--theme-rgb:255,255,255;background-color:#000000;color:var(--text-white);}
+body.light{--green:var(--accent-light);--theme-rgb:0,0,0;background-color:var(--bg-light);color:var(--text-dark);}
 .outer-container{display:flex;height:532px;position:relative;}
-.wrapper{position:relative;width:var(--main-w);min-width:var(--main-w);height:532px;overflow:hidden;transition:background .4s,border-color .4s,box-shadow .4s;flex-shrink:0;}
-body.dark .wrapper{background:var(--bg);border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.8);}
-body.light .wrapper{background:var(--bg-light-card);border:1px solid var(--border-light);box-shadow:0 20px 60px rgba(0,0,0,.15);}
+.wrapper{position:relative;width:var(--main-w);min-width:var(--main-w);height:532px;overflow:hidden;transition:background .4s,border-color .4s,box-shadow .4s;flex-shrink:0;border-radius:20px;}
+body.dark .wrapper{background:var(--bg);border:1px solid #252525;box-shadow:0 30px 80px rgba(0,0,0,.98),inset 0 0 0 1px rgba(255,255,255,.03);}
+body.light .wrapper{background:var(--bg-light-card);border:1px solid var(--border-light);box-shadow:0 24px 60px rgba(0,0,0,.16);}
 .title-drag-area{position:absolute;top:0;left:0;width:100%;height:40px;z-index:999;cursor:default;}
 .screen{position:absolute;top:0;left:0;width:100%;height:100%;transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .4s,background .4s;display:flex;flex-direction:column;}
 body.dark .screen{background:var(--bg);}body.light .screen{background:var(--bg-light-card);}
@@ -1180,28 +1177,27 @@ body.dark .screen{background:var(--bg);}body.light .screen{background:var(--bg-l
 .screen.inactive-right{transform:translateX(100%);opacity:0;z-index:1;pointer-events:none;}
 .text-green{color:var(--green);}
 body.dark .text-main{color:var(--text-white);}body.light .text-main{color:var(--text-dark);}
-body.dark .text-faint{color:rgba(255,255,255,.2);}body.light .text-faint{color:rgba(0,0,0,.3);}
+body.dark .text-faint{color:rgba(255,255,255,.32);}body.light .text-faint{color:rgba(0,0,0,.38);}
 .font-unbounded{font-family:'Unbounded',sans-serif;font-weight:500;}
 .font-medium{font-weight:500;}.font-semibold{font-weight:600;}
 .window-controls{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:1000;cursor:pointer;}
 .dot{width:18px;height:18px;border-radius:50%;transition:opacity .2s;}.dot:hover{opacity:.8;}
 .dot-orange{background:var(--orange);}.dot-red{background:var(--red);}
 .header-title{position:absolute;top:40px;left:30px;display:flex;align-items:center;gap:12px;font-size:26px;line-height:32px;}
-.logo-icon{width:32px;height:32px;fill:var(--green);filter:drop-shadow(0 0 5px rgba(var(--theme-rgb),.3));}
-.version-row{position:absolute;top:90px;left:30px;font-size:22px;white-space:nowrap;}
+.logo-icon{width:32px;height:32px;fill:var(--green);filter:drop-shadow(0 0 9px rgba(var(--theme-rgb),.45));}
+.version-row{position:absolute;top:90px;left:30px;font-size:22px;white-space:nowrap;letter-spacing:.2px;}
 )CSS";
 
     std::wstring css2 = LR"CSS(
-.image-frame{position:absolute;top:125px;left:30px;width:322px;height:140px;border-radius:16px;background-color:#333;background-image:url('https://s4.iimage.su/s/08/geyw6HWxcE3UZ5b8Mfpu7SXbSsfCqNn4PWw8q8h6.jpg');background-size:cover;background-position:center;}
-.description{position:absolute;top:280px;left:30px;width:322px;font-size:14px;line-height:18px;}
-.credits{position:absolute;top:315px;left:30px;font-size:11px;line-height:15px;}
+.image-frame{position:absolute;top:125px;left:30px;width:322px;height:140px;border-radius:16px;background-color:#333;background-image:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.5) 100%),url('https://s4.iimage.su/s/08/geyw6HWxcE3UZ5b8Mfpu7SXbSsfCqNn4PWw8q8h6.jpg');background-size:cover;background-position:center;border:1px solid rgba(var(--theme-rgb),.2);box-shadow:0 12px 28px rgba(0,0,0,.45);}
+.description{position:absolute;top:280px;left:30px;width:322px;font-size:14px;line-height:19px;}
 .btn-small{position:absolute;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:.2s;user-select:none;}
-body.dark .btn-small{background:#212121;border:1.4px solid var(--border);}body.light .btn-small{background:#F0F0F0;border:1.4px solid var(--border-light);}
-.btn-small:hover{border-color:var(--green);}.btn-small:active{transform:scale(.96);}
+body.dark .btn-small{background:#101010;border:1.4px solid #2A2A2A;}body.light .btn-small{background:#F2F2F2;border:1.4px solid var(--border-light);}
+.btn-small:hover{border-color:var(--green);transform:translateY(-1px);}.btn-small:active{transform:scale(.96);}
 .btn-site{width:88px;bottom:90px;left:30px;}.btn-settings{width:222px;bottom:90px;left:130px;}
-.btn-launch{position:absolute;bottom:30px;left:30px;width:322px;height:50px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:'Montserrat',sans-serif;font-weight:600;border:none;cursor:pointer;transition:.3s cubic-bezier(.25,.8,.25,1);}
+.btn-launch{position:absolute;bottom:30px;left:30px;width:322px;height:50px;background:var(--green);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:'Montserrat',sans-serif;font-weight:700;border:none;cursor:pointer;transition:.3s cubic-bezier(.25,.8,.25,1);letter-spacing:.2px;}
 body.dark .btn-launch{color:var(--bg);}body.light .btn-launch{color:#fff;}
-.btn-launch:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 5px 15px rgba(var(--theme-rgb),.3);}
+.btn-launch:hover{opacity:.95;transform:translateY(-2px);box-shadow:0 10px 24px rgba(var(--theme-rgb),.35);}
 .btn-launch:active{transform:scale(.98);}
 .btn-launch.btn-quit-mode{background:var(--btn-red);color:#FFF;box-shadow:0 5px 15px rgba(217,48,37,.3);}
 .screen-title{position:absolute;top:40px;left:30px;font-size:26px;font-family:'Unbounded',sans-serif;color:var(--green);}
@@ -1225,8 +1221,8 @@ body.dark .slider{background:#212121;border:1.4px solid var(--border);}body.ligh
 body.dark .slider::-webkit-slider-thumb{border:2px solid var(--bg);}body.light .slider::-webkit-slider-thumb{border:2px solid #fff;}
 .slider::-webkit-slider-thumb:hover{transform:scale(1.1);}
 .btn-extra-settings{position:absolute;top:240px;left:30px;width:322px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer;transition:.2s;user-select:none;}
-body.dark .btn-extra-settings{background:#1a1a1a;border:1.4px solid var(--border);color:var(--green);}
-body.light .btn-extra-settings{background:#f0f0f0;border:1.4px solid var(--border-light);color:var(--green);}
+body.dark .btn-extra-settings{background:#0E0E0E;border:1.4px solid #242424;color:var(--green);}
+body.light .btn-extra-settings{background:#F1F1F1;border:1.4px solid var(--border-light);color:var(--green);}
 .btn-extra-settings:hover{border-color:var(--green);}
 .btn-extra-settings:active{transform:scale(.97);}
 .btn-extra-settings svg{width:16px;height:16px;transition:transform .3s;}
@@ -1235,13 +1231,13 @@ body.light .btn-extra-settings{background:#f0f0f0;border:1.4px solid var(--borde
 
     std::wstring css3 = LR"CSS(
 .btn-back{position:absolute;bottom:30px;left:30px;width:322px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:.2s;user-select:none;font-family:'Montserrat',sans-serif;font-weight:600;}
-body.dark .btn-back{background:#212121;border:1.4px solid var(--border);}body.light .btn-back{background:#F0F0F0;border:1.4px solid var(--border-light);}
+body.dark .btn-back{background:#101010;border:1.4px solid #2A2A2A;}body.light .btn-back{background:#F0F0F0;border:1.4px solid var(--border-light);}
 .btn-back:hover{border-color:var(--green);}.btn-back:active{transform:scale(.98);}
 .btn-cancel{position:absolute;bottom:30px;left:30px;width:322px;height:40px;background:transparent;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#888;cursor:pointer;transition:.2s;user-select:none;font-family:'Montserrat',sans-serif;font-weight:600;}
 body.dark .btn-cancel{border:1px solid var(--border);}body.light .btn-cancel{border:1px solid var(--border-light);}
 .btn-cancel:hover{border-color:var(--btn-red);color:var(--btn-red);background:rgba(217,48,37,.05);}
 .toast{position:absolute;bottom:40px;left:191px;transform:translateX(-50%) translateY(120px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.05);padding:14px 24px;border-radius:18px;font-size:14px;font-family:'Montserrat',sans-serif;font-weight:600;opacity:0;pointer-events:none;transition:all .6s cubic-bezier(.22,1,.36,1);z-index:100;display:flex;align-items:center;gap:14px;min-width:200px;white-space:nowrap;}
-body.dark .toast{background:rgba(18,18,18,.9);color:#fff;box-shadow:0 0 0 1px rgba(0,0,0,1),0 20px 50px rgba(0,0,0,.8);}
+body.dark .toast{background:rgba(0,0,0,.92);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 50px rgba(0,0,0,.85);}
 body.light .toast{background:rgba(255,255,255,.95);color:#111;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 20px 50px rgba(0,0,0,.15);}
 .toast-icon{flex-shrink:0;width:32px;height:32px;background:linear-gradient(135deg,rgba(var(--theme-rgb),.2),rgba(var(--theme-rgb),.05));border:1px solid rgba(var(--theme-rgb),.3);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--green);}
 .toast-icon svg{width:16px;height:16px;stroke-width:2.5;}
@@ -1267,29 +1263,31 @@ body.dark .loader-bar-bg-large{background:#212121;border:1px solid rgba(44,43,43
 .welcome-screen{position:absolute;top:0;left:0;width:var(--main-w);height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;transition:opacity .5s,transform .5s;}
 body.dark .welcome-screen{background:var(--bg);}body.light .welcome-screen{background:var(--bg-light-card);}
 .welcome-screen.hidden{opacity:0;pointer-events:none;transform:scale(.95);}
-.welcome-title{font-family:'Unbounded',sans-serif;font-size:28px;color:var(--green);margin-bottom:30px;}
+.welcome-title{font-family:'Unbounded',sans-serif;font-size:30px;color:var(--green);margin-bottom:30px;text-shadow:0 0 18px rgba(var(--theme-rgb),.18);}
 .welcome-subtitle{font-size:14px;margin-bottom:24px;opacity:.6;}
 .welcome-options{display:flex;flex-direction:column;gap:14px;width:280px;}
 .welcome-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:12px;transition:background .3s,border-color .3s;}
-body.dark .welcome-row{background:#1a1a1a;border:1px solid var(--border);}body.light .welcome-row{background:#f0f0f0;border:1px solid var(--border-light);}
+body.dark .welcome-row{background:#0D0D0D;border:1px solid #262626;}body.light .welcome-row{background:#F1F1F1;border:1px solid var(--border-light);}
 .welcome-row-label{font-size:16px;font-weight:600;}
 .welcome-toggle{display:flex;gap:6px;}
 .toggle-btn{padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;border:1px solid transparent;display:flex;align-items:center;gap:4px;}
-.toggle-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
-body.dark .toggle-btn:not(.active){background:#2a2a2a;color:#aaa;border-color:var(--border);}
-body.light .toggle-btn:not(.active){background:#e0e0e0;color:#666;border-color:var(--border-light);}
+.toggle-btn.active{background:var(--green);border-color:var(--green);}
+body.dark .toggle-btn.active{color:#000;border-color:#fff;}
+body.light .toggle-btn.active{color:#fff;border-color:#000;}
+body.dark .toggle-btn:not(.active){background:#1E1E1E;color:#AFAFAF;border-color:#2A2A2A;}
+body.light .toggle-btn:not(.active){background:#E4E4E4;color:#666;border-color:var(--border-light);}
 .toggle-btn:hover:not(.active){border-color:var(--green);}
 .toggle-btn svg{width:14px;height:14px;}
 .welcome-continue{margin-top:20px;width:280px;height:48px;background:var(--green);border:none;border-radius:14px;font-size:18px;font-weight:600;cursor:pointer;transition:.3s;font-family:'Montserrat',sans-serif;}
 body.dark .welcome-continue{color:var(--bg);}body.light .welcome-continue{color:#fff;}
-.welcome-continue:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 5px 15px rgba(var(--theme-rgb),.3);}
+.welcome-continue:hover{opacity:.95;transform:translateY(-2px);box-shadow:0 10px 24px rgba(var(--theme-rgb),.3);}
 .welcome-continue:active{transform:scale(.98);}
 )CSS";
 
     std::wstring css5 = LR"CSS(
 .extra-panel{width:0;overflow:hidden;height:532px;transition:width .4s cubic-bezier(.22,1,.36,1),opacity .3s;opacity:0;flex-shrink:0;position:relative;}
 .extra-panel.open{width:var(--extra-w);opacity:1;}
-body.dark .extra-panel{background:var(--bg);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+body.dark .extra-panel{background:var(--bg);border-top:1px solid #252525;border-right:1px solid #252525;border-bottom:1px solid #252525;}
 body.light .extra-panel{background:var(--bg-light-card);border-top:1px solid var(--border-light);border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);}
 .extra-panel-inner{width:var(--extra-w);padding:30px 20px;display:flex;flex-direction:column;gap:20px;}
 .extra-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:20px;color:var(--green);text-transform:uppercase;letter-spacing:1px;line-height:1.2;}
@@ -1345,7 +1343,6 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
             <div class="version-row font-unbounded text-green">Minecraft __MC_VERSION__</div>
             <div class="image-frame"></div>
             <div class="description font-medium text-main" id="mainDesc">desc</div>
-            <div class="credits text-faint font-medium">design by t.me/vagonsolutions.</div>
             <div class="btn-small btn-site font-semibold text-green" id="btnSiteText" onclick="window.open('https://google.com')">Site</div>
             <div class="btn-small btn-settings font-semibold text-green" id="btnSettingsText" onclick="goToSettings()">Settings</div>
             <button id="mainLaunchBtn" class="btn-launch font-semibold" onclick="handleMainButton()">Launch</button>
@@ -1388,7 +1385,7 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
 
     <div class="extra-panel" id="extraPanel">
         <div class="extra-panel-inner">
-            <div class="extra-title" id="extraPanelTitle">)HTML" + cheatNameUpper + LR"HTML(</div>
+            <div class="extra-title" id="extraPanelTitle">)HTML" + cheatNameDisplay + LR"HTML(</div>
             <div class="extra-divider"></div>
             <div class="extra-section">
                 <div class="extra-section-label" id="extraThemeLabel">Theme</div>
@@ -1413,8 +1410,8 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
 <script>
 const mainScreen=document.getElementById('main-screen'),settingsScreen=document.getElementById('settings-screen'),loadingScreen=document.getElementById('loading-screen'),welcomeScreen=document.getElementById('welcome-screen'),extraPanel=document.getElementById('extraPanel');
 let isGameRunning=false,currentLang='ru',currentTheme='dark',currentNickname='Player',extraPanelOpen=false;
-const L={ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'Сайт',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Максимальная оптимизация, скорость и комфорт.',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
-en:{welcome:'Welcome',choosePrefs:'Choose your preferences',language:'Language',theme:'Theme',continue_:'Continue',settings:'Settings',ram:'RAM',saveExit:'Save & Exit',site:'Site',launch:'Launch',terminate:'Terminate',cancel:'Cancel',loading:'Loading',done:'Done',desc:'Maximum optimization, speed and comfort.',settingsSaved:'Configuration saved',launchedCache:'Launched from cache',gameTerminated:'Game terminated',clientLaunched:'Client launched',process:'Process',nickname:'Nickname',save:'Save',nickSaved:'Nickname saved',nickEmpty:'Enter a nickname',extraSettings:'Advanced Settings'}};
+const L={ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'Сайт',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Xlority Client - твой путь к превосходству в каждом бою.',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
+en:{welcome:'Welcome',choosePrefs:'Choose your preferences',language:'Language',theme:'Theme',continue_:'Continue',settings:'Settings',ram:'RAM',saveExit:'Save & Exit',site:'Site',launch:'Launch',terminate:'Terminate',cancel:'Cancel',loading:'Loading',done:'Done',desc:'Xlority Client - your path to total advantage in every battle.',settingsSaved:'Configuration saved',launchedCache:'Launched from cache',gameTerminated:'Game terminated',clientLaunched:'Client launched',process:'Process',nickname:'Nickname',save:'Save',nickSaved:'Nickname saved',nickEmpty:'Enter a nickname',extraSettings:'Advanced Settings'}};
 function t(k){return L[currentLang][k]||k;}
 function refreshSlider(){const s=document.getElementById('ramSlider');updateSliderBackground(s.value,s.min,s.max);}
 function applyLang(){
@@ -1503,8 +1500,8 @@ applyLang();applyTheme('dark');
     std::wstring ph = L"EXAMPLE";
     size_t pos = 0;
     while ((pos = html.find(ph, pos)) != std::wstring::npos) {
-        html.replace(pos, ph.length(), cheatNameUpper);
-        pos += cheatNameUpper.length();
+        html.replace(pos, ph.length(), cheatNameDisplay);
+        pos += cheatNameDisplay.length();
     }
 
     std::wstring versionPlaceholder = L"__MC_VERSION__";
