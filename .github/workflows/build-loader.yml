@@ -1,0 +1,54 @@
+﻿name: build-loader
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-win64:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore MegaSelfCodeLoader/packages.config -PackagesDirectory packages
+
+      - name: Build (Release x64)
+        run: msbuild MegaSelfCodeLoader/MegaSelfCodeLoader.vcxproj /m /t:Build "/p:Configuration=Release;Platform=x64"
+
+      - name: Collect binaries
+        shell: pwsh
+        run: |
+          $outDir = "MegaSelfCodeLoader\\x64\\Release"
+          $exe = Join-Path $outDir "MegaSelfCodeLoader.exe"
+          if (!(Test-Path $exe)) {
+            throw "EXE not found: $exe"
+          }
+
+          New-Item -ItemType Directory -Force -Path artifact | Out-Null
+          Copy-Item $exe artifact\
+
+          $wv2Out = Join-Path $outDir "WebView2Loader.dll"
+          if (Test-Path $wv2Out) {
+            Copy-Item $wv2Out artifact\
+          } else {
+            $wv2Pkg = "packages\\Microsoft.Web.WebView2.1.0.3719.77\\build\\native\\x64\\WebView2Loader.dll"
+            if (Test-Path $wv2Pkg) {
+              Copy-Item $wv2Pkg artifact\
+            }
+          }
+
+          Compress-Archive -Path artifact\* -DestinationPath MegaSelfCodeLoader-win64.zip -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MegaSelfCodeLoader-win64
+          path: MegaSelfCodeLoader-win64.zip
