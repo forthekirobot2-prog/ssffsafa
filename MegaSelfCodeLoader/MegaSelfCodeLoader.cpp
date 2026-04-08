@@ -61,9 +61,9 @@ bool g_HasSavedPrefs = false;
 std::wstring g_Nickname = L"Player";
 bool g_ExtraPanelOpen = false;
 
-const int MAIN_WIDTH = 382;
-const int MAIN_HEIGHT = 532;
-const int EXTRA_WIDTH = 220;
+const int MAIN_WIDTH = 980;
+const int MAIN_HEIGHT = 600;
+const int EXTRA_WIDTH = 0;
 
 struct RegState { bool isInstalled; int ram; bool darkTheme; bool langRu; bool hasPrefs; std::wstring nickname; };
 
@@ -1144,7 +1144,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     switch (message) {
     case WM_WEBVIEW_UPDATE: { std::wstring* j = (std::wstring*)lParam; if (g_webview) g_webview->PostWebMessageAsJson(j->c_str()); delete j; return 0; }
     case WM_SIZE: if (g_webviewController) { RECT b; GetClientRect(hWnd, &b); g_webviewController->put_Bounds(b); } break;
-    case WM_NCHITTEST: { POINT p = { LOWORD(lParam), HIWORD(lParam) }; ScreenToClient(hWnd, &p); if (p.y < 45 && p.x < 302) return HTCAPTION; return DefWindowProc(hWnd, message, wParam, lParam); }
+    case WM_NCHITTEST: {
+        POINT p = { LOWORD(lParam), HIWORD(lParam) };
+        ScreenToClient(hWnd, &p);
+        if (p.y < 48 && p.x < (MAIN_WIDTH - 128)) return HTCAPTION;
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
     case WM_DESTROY: g_CancelDownload = true; TerminateGame(); PostQuitMessage(0); break;
     default: return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -1153,423 +1158,255 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     RegState saved = LoadRegistry();
-    g_DarkTheme = saved.darkTheme; g_LangRu = saved.langRu; g_RamAmount = saved.ram;
+    g_DarkTheme = true; g_LangRu = saved.langRu; g_RamAmount = saved.ram;
     g_HasSavedPrefs = saved.hasPrefs; g_Nickname = saved.nickname;
 
     std::wstring cheatNameDisplay = CHEAT_NAME;
 
-    std::wstring css1 = LR"CSS(
+    std::wstring cssA = LR"CSS(
 <style>
-:root{--green:#FFFFFF;--bg:#000000;--bg-dark:#000000;--bg-light:#F5F5F5;--bg-light-card:#FFF;--border:#1E1E1E;--border-light:#DADADA;--text-white:#FFF;--text-dark:#0B0B0B;--orange:#FFB000;--red:#FF6A00;--btn-red:#D93025;--theme-rgb:255,255,255;--accent-dark:#FFFFFF;--accent-light:#000000;--main-w:382px;--extra-w:220px;}
+:root{
+  --bg:#050507;
+  --panel:#0F0F17;
+  --panel-soft:#141427;
+  --line:#2A2A3F;
+  --text:#F4F4FD;
+  --muted:#AEB0C9;
+  --violet:#8F5DFF;
+  --violet-soft:#BDA7FF;
+  --ok:#39E38E;
+  --danger:#FF5D7E;
+}
 *{box-sizing:border-box;}
-body{margin:0;padding:0;display:flex;justify-content:flex-start;align-items:center;height:100vh;font-family:'Montserrat',sans-serif;overflow:hidden;user-select:none;transition:background-color .4s,color .4s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
-body.dark{--green:var(--accent-dark);--theme-rgb:255,255,255;--logo-cut:#000000;background-color:#000000;color:var(--text-white);}
-body.light{--green:var(--accent-light);--theme-rgb:0,0,0;--logo-cut:#FFFFFF;background-color:var(--bg-light);color:var(--text-dark);}
-.outer-container{display:flex;height:532px;position:relative;}
-.wrapper{position:relative;width:var(--main-w);min-width:var(--main-w);height:532px;overflow:hidden;transition:background .4s,border-color .4s,box-shadow .4s;flex-shrink:0;border-radius:20px;}
-body.dark .wrapper{background:var(--bg);border:1px solid #252525;box-shadow:0 30px 80px rgba(0,0,0,.98),inset 0 0 0 1px rgba(255,255,255,.03);}
-body.light .wrapper{background:var(--bg-light-card);border:1px solid var(--border-light);box-shadow:0 24px 60px rgba(0,0,0,.16);}
-.title-drag-area{position:absolute;top:0;left:0;width:100%;height:40px;z-index:999;cursor:default;}
-.screen{position:absolute;top:0;left:0;width:100%;height:100%;transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .4s,background .4s;display:flex;flex-direction:column;}
-body.dark .screen{background:var(--bg);}body.light .screen{background:var(--bg-light-card);}
-.screen.active{transform:translateX(0);opacity:1;z-index:2;pointer-events:all;}
-.screen.inactive-left{transform:translateX(-100px) scale(.95);opacity:0;z-index:1;pointer-events:none;filter:blur(5px);}
-.screen.inactive-right{transform:translateX(100%);opacity:0;z-index:1;pointer-events:none;}
-.text-green{color:var(--green);}
-body.dark .text-main{color:var(--text-white);}body.light .text-main{color:var(--text-dark);}
-body.dark .text-faint{color:rgba(255,255,255,.32);}body.light .text-faint{color:rgba(0,0,0,.38);}
-.font-unbounded{font-family:'Unbounded',sans-serif;font-weight:500;}
-.font-medium{font-weight:500;}.font-semibold{font-weight:600;}
-.window-controls{position:absolute;top:10px;right:10px;display:flex;gap:8px;z-index:1000;}
-.win-btn{width:34px;height:26px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;line-height:1;cursor:pointer;transition:.2s;user-select:none;font-family:'Unbounded',sans-serif;}
-body.dark .win-btn{background:linear-gradient(180deg,#111,#090909);border:1px solid #2D2D2D;color:#D8D8D8;}
-body.light .win-btn{background:linear-gradient(180deg,#FAFAFA,#ECECEC);border:1px solid #D1D1D1;color:#111;}
-.win-btn:hover{transform:translateY(-1px);}
-.win-btn:active{transform:scale(.96);}
-.win-btn.win-min:hover{border-color:#FFB000;color:#FFB000;box-shadow:0 0 0 1px rgba(255,176,0,.2),0 8px 18px rgba(255,176,0,.15);}
-.win-btn.win-close:hover{border-color:#FF6A00;color:#FF6A00;box-shadow:0 0 0 1px rgba(255,106,0,.2),0 8px 18px rgba(255,106,0,.15);}
-.header-title{position:absolute;top:40px;left:30px;display:flex;align-items:center;gap:12px;font-size:26px;line-height:32px;letter-spacing:.15px;}
-.logo-icon{width:34px;height:34px;color:var(--green);filter:drop-shadow(0 0 10px rgba(var(--theme-rgb),.4));}
-.logo-cut{fill:none;stroke:var(--logo-cut);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
-.version-row{position:absolute;top:90px;left:30px;font-size:22px;white-space:nowrap;letter-spacing:.25px;}
-)CSS";
-
-    std::wstring css2 = LR"CSS(
-.image-frame{position:absolute;top:125px;left:30px;width:322px;height:150px;border-radius:18px;overflow:hidden;border:1px solid rgba(var(--theme-rgb),.22);box-shadow:0 16px 34px rgba(0,0,0,.45);background:linear-gradient(145deg,rgba(var(--theme-rgb),.16) 0%,rgba(var(--theme-rgb),.03) 45%,rgba(0,0,0,.35) 100%);}
-body.light .image-frame{box-shadow:0 16px 30px rgba(0,0,0,.2);}
-.image-frame::before{content:'';position:absolute;inset:-35% -20%;background:radial-gradient(circle at 20% 20%, rgba(var(--theme-rgb),.3) 0%, transparent 52%),radial-gradient(circle at 85% 80%, rgba(var(--theme-rgb),.2) 0%, transparent 48%);opacity:.9;}
-.image-frame::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(120deg,rgba(var(--theme-rgb),.08) 0 2px,transparent 2px 12px);mix-blend-mode:soft-light;opacity:.38;}
-.hero-content{position:absolute;inset:0;z-index:2;padding:16px;display:flex;flex-direction:column;justify-content:space-between;}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;}
-.hero-badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
-body.dark .hero-badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;}
-body.light .hero-badge{background:rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.2);color:#111;}
-.hero-dot{width:8px;height:8px;border-radius:50%;background:#35D07F;box-shadow:0 0 14px rgba(53,208,127,.7);}
-.hero-title{font-family:'Unbounded',sans-serif;font-size:20px;line-height:1.2;letter-spacing:.3px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5);}
-body.light .hero-title{color:#111;text-shadow:none;}
-.hero-tags{display:flex;gap:6px;flex-wrap:wrap;}
-.hero-tag{padding:4px 8px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.25px;}
-body.dark .hero-tag{background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.22);color:#fff;}
-body.light .hero-tag{background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.16);color:#111;}
-.description{position:absolute;top:288px;left:30px;width:322px;font-size:14px;line-height:20px;font-weight:600;letter-spacing:.12px;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;transform:translateZ(0);}
-.quick-row{position:absolute;top:344px;left:30px;width:322px;display:flex;gap:8px;}
-.quick-item{flex:1;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:.2px;}
-body.dark .quick-item{background:#0F0F0F;border:1px solid #2A2A2A;color:#EDEDED;}
-body.light .quick-item{background:#F2F2F2;border:1px solid #D8D8D8;color:#111;}
-.btn-small{position:absolute;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:.2s;user-select:none;}
-body.dark .btn-small{background:#101010;border:1.4px solid #2A2A2A;}body.light .btn-small{background:#F2F2F2;border:1.4px solid var(--border-light);}
-.btn-small:hover{border-color:var(--green);transform:translateY(-1px);}.btn-small:active{transform:scale(.96);}
-.btn-site{width:88px;bottom:90px;left:30px;}.btn-settings{width:222px;bottom:90px;left:130px;}
-.btn-launch{position:absolute;bottom:30px;left:30px;width:322px;height:50px;background:var(--green);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:'Montserrat',sans-serif;font-weight:700;border:none;cursor:pointer;transition:.3s cubic-bezier(.25,.8,.25,1);letter-spacing:.2px;}
-body.dark .btn-launch{color:var(--bg);}body.light .btn-launch{color:#fff;}
-.btn-launch:hover{opacity:.95;transform:translateY(-2px);box-shadow:0 10px 24px rgba(var(--theme-rgb),.35);}
-.btn-launch:active{transform:scale(.98);}
-.btn-launch.btn-quit-mode{background:var(--btn-red);color:#FFF;box-shadow:0 5px 15px rgba(217,48,37,.3);}
-.screen-title{position:absolute;top:40px;left:30px;font-size:26px;font-family:'Unbounded',sans-serif;color:var(--green);}
-.nick-group{position:absolute;top:90px;left:30px;width:322px;}
-.nick-label{font-size:18px;margin-bottom:8px;display:block;color:var(--green);font-weight:600;}
-.nick-row{display:flex;align-items:center;gap:8px;}
-.nick-input{width:0;flex:1;height:38px;border-radius:10px;font-size:16px;font-family:'Montserrat',sans-serif;font-weight:600;padding:0 12px;outline:none;transition:border-color .2s;min-width:0;}
-body.dark .nick-input{background:#212121;border:1.4px solid var(--border);color:var(--green);}
-body.light .nick-input{background:#f0f0f0;border:1.4px solid var(--border-light);color:var(--text-dark);}
-.nick-input:focus{border-color:var(--green);}
-.nick-input::placeholder{color:#444;}body.light .nick-input::placeholder{color:#aaa;}
-.btn-nick-save{flex-shrink:0;width:100px;height:38px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer;border:none;transition:.2s;}
-body.dark .btn-nick-save{color:var(--bg);}body.light .btn-nick-save{color:#fff;}
-.btn-nick-save:hover{opacity:.9;box-shadow:0 2px 10px rgba(var(--theme-rgb),.2);}
-.btn-nick-save:active{transform:scale(.95);}
-.ram-group{position:absolute;top:170px;left:30px;width:322px;}
-.ram-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;font-size:18px;}
-.slider{-webkit-appearance:none;width:100%;height:12px;border-radius:10px;outline:none;margin:0;cursor:pointer;}
-body.dark .slider{background:#212121;border:1.4px solid var(--border);}body.light .slider{background:#E0E0E0;border:1.4px solid var(--border-light);}
-.slider::-webkit-slider-thumb{-webkit-appearance:none;width:36px;height:20px;background:var(--green);border-radius:10px;cursor:grab;box-shadow:0 0 10px rgba(var(--theme-rgb),.4);transition:transform .1s;}
-body.dark .slider::-webkit-slider-thumb{border:2px solid var(--bg);}body.light .slider::-webkit-slider-thumb{border:2px solid #fff;}
-.slider::-webkit-slider-thumb:hover{transform:scale(1.1);}
-.btn-extra-settings{position:absolute;top:240px;left:30px;width:322px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer;transition:.2s;user-select:none;}
-body.dark .btn-extra-settings{background:#0E0E0E;border:1.4px solid #242424;color:var(--green);}
-body.light .btn-extra-settings{background:#F1F1F1;border:1.4px solid var(--border-light);color:var(--green);}
-.btn-extra-settings:hover{border-color:var(--green);}
-.btn-extra-settings:active{transform:scale(.97);}
-.btn-extra-settings svg{width:16px;height:16px;transition:transform .3s;}
-.btn-extra-settings.open svg{transform:rotate(180deg);}
-)CSS";
-
-    std::wstring css3 = LR"CSS(
-.btn-back{position:absolute;bottom:30px;left:30px;width:322px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:.2s;user-select:none;font-family:'Montserrat',sans-serif;font-weight:600;}
-body.dark .btn-back{background:#101010;border:1.4px solid #2A2A2A;}body.light .btn-back{background:#F0F0F0;border:1.4px solid var(--border-light);}
-.btn-back:hover{border-color:var(--green);}.btn-back:active{transform:scale(.98);}
-.btn-cancel{position:absolute;bottom:30px;left:30px;width:322px;height:40px;background:transparent;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#888;cursor:pointer;transition:.2s;user-select:none;font-family:'Montserrat',sans-serif;font-weight:600;}
-body.dark .btn-cancel{border:1px solid var(--border);}body.light .btn-cancel{border:1px solid var(--border-light);}
-.btn-cancel:hover{border-color:var(--btn-red);color:var(--btn-red);background:rgba(217,48,37,.05);}
-.toast{position:absolute;bottom:40px;left:191px;transform:translateX(-50%) translateY(120px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.05);padding:14px 24px;border-radius:18px;font-size:14px;font-family:'Montserrat',sans-serif;font-weight:600;opacity:0;pointer-events:none;transition:all .6s cubic-bezier(.22,1,.36,1);z-index:100;display:flex;align-items:center;gap:14px;min-width:200px;white-space:nowrap;}
-body.dark .toast{background:rgba(0,0,0,.92);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 50px rgba(0,0,0,.85);}
-body.light .toast{background:rgba(255,255,255,.95);color:#111;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 20px 50px rgba(0,0,0,.15);}
-.toast-icon{flex-shrink:0;width:32px;height:32px;background:linear-gradient(135deg,rgba(var(--theme-rgb),.2),rgba(var(--theme-rgb),.05));border:1px solid rgba(var(--theme-rgb),.3);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--green);}
-.toast-icon svg{width:16px;height:16px;stroke-width:2.5;}
-.toast-content{display:flex;flex-direction:column;gap:2px;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.loader-subtitle{position:absolute;top:75px;left:30px;font-size:16px;color:rgba(var(--theme-rgb),.5);font-family:'Unbounded',sans-serif;}
-.loader-image-large{position:absolute;top:120px;left:30px;width:322px;height:220px;border-radius:16px;background-image:url('https://i.pinimg.com/1200x/bd/d1/93/bdd193dd24d9d5cadd72494fd22aa8a3.jpg');background-size:cover;background-position:center;border:1px solid rgba(44,43,43,.81);display:flex;align-items:center;justify-content:center;}
-.loader-stats-row{position:absolute;top:360px;left:30px;width:322px;display:flex;justify-content:space-between;font-family:'Unbounded',sans-serif;font-size:12px;color:var(--green);}
-.loader-bar-bg-large{position:absolute;top:385px;left:30px;width:322px;height:16px;border-radius:8px;overflow:hidden;}
-body.dark .loader-bar-bg-large{background:#212121;border:1px solid rgba(44,43,43,.81);}body.light .loader-bar-bg-large{background:#E0E0E0;border:1px solid var(--border-light);}
-.loader-bar-fill-large{height:100%;width:0%;background:var(--green);border-radius:8px;transition:width .1s linear;}
-)CSS";
-
-    std::wstring css4 = LR"CSS(
-.checkmark-container{display:none;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;border-radius:16px;}
-.checkmark-svg{width:56px;height:56px;border-radius:50%;display:block;stroke-width:2;stroke:var(--green);stroke-miterlimit:10;animation:fill .4s ease-in-out .4s forwards,scale .3s ease-in-out .9s both;}
-.checkmark-circle{stroke-dasharray:166;stroke-dashoffset:166;stroke-width:2;stroke-miterlimit:10;stroke:var(--green);fill:none;animation:stroke .6s cubic-bezier(.65,0,.45,1) forwards;}
-.checkmark-check{transform-origin:50% 50%;stroke-dasharray:48;stroke-dashoffset:48;animation:stroke .3s cubic-bezier(.65,0,.45,1) .6s forwards;}
-@keyframes stroke{100%{stroke-dashoffset:0;}}
-@keyframes scale{0%,100%{transform:none;}50%{transform:scale3d(1.1,1.1,1);}}
-@keyframes fill{100%{box-shadow:inset 0 0 0 30px transparent;}}
-.error-log{position:absolute;bottom:80px;left:30px;width:300px;max-height:100px;overflow-y:auto;font-size:11px;color:#ff6666;font-family:monospace;background:rgba(255,0,0,.05);border:1px solid rgba(255,0,0,.2);border-radius:8px;padding:8px;display:none;word-break:break-all;box-sizing:border-box;}
-.welcome-screen{position:absolute;top:0;left:0;width:var(--main-w);height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;transition:opacity .5s,transform .5s;}
-body.dark .welcome-screen{background:var(--bg);}body.light .welcome-screen{background:var(--bg-light-card);}
-.welcome-screen.hidden{opacity:0;pointer-events:none;transform:scale(.95);}
-.welcome-title{font-family:'Unbounded',sans-serif;font-size:30px;color:var(--green);margin-bottom:30px;text-shadow:0 0 18px rgba(var(--theme-rgb),.18);}
-.welcome-subtitle{font-size:14px;margin-bottom:24px;opacity:.6;}
-.welcome-options{display:flex;flex-direction:column;gap:14px;width:280px;}
-.welcome-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:12px;transition:background .3s,border-color .3s;}
-body.dark .welcome-row{background:#0D0D0D;border:1px solid #262626;}body.light .welcome-row{background:#F1F1F1;border:1px solid var(--border-light);}
-.welcome-row-label{font-size:16px;font-weight:600;}
-.welcome-toggle{display:flex;gap:6px;}
-.toggle-btn{padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;border:1px solid transparent;display:flex;align-items:center;gap:4px;}
-.toggle-btn.active{background:var(--green);border-color:var(--green);}
-body.dark .toggle-btn.active{color:#000;border-color:#fff;}
-body.light .toggle-btn.active{color:#fff;border-color:#000;}
-body.dark .toggle-btn:not(.active){background:#1E1E1E;color:#AFAFAF;border-color:#2A2A2A;}
-body.light .toggle-btn:not(.active){background:#E4E4E4;color:#666;border-color:var(--border-light);}
-.toggle-btn:hover:not(.active){border-color:var(--green);}
-.toggle-btn svg{width:14px;height:14px;}
-.welcome-continue{margin-top:20px;width:280px;height:48px;background:var(--green);border:none;border-radius:14px;font-size:18px;font-weight:600;cursor:pointer;transition:.3s;font-family:'Montserrat',sans-serif;}
-body.dark .welcome-continue{color:var(--bg);}body.light .welcome-continue{color:#fff;}
-.welcome-continue:hover{opacity:.95;transform:translateY(-2px);box-shadow:0 10px 24px rgba(var(--theme-rgb),.3);}
-.welcome-continue:active{transform:scale(.98);}
-)CSS";
-
-    std::wstring css5 = LR"CSS(
-.extra-panel{width:0;overflow:hidden;height:532px;transition:width .4s cubic-bezier(.22,1,.36,1),opacity .3s;opacity:0;flex-shrink:0;position:relative;}
-.extra-panel.open{width:var(--extra-w);opacity:1;}
-body.dark .extra-panel{background:var(--bg);border-top:1px solid #252525;border-right:1px solid #252525;border-bottom:1px solid #252525;}
-body.light .extra-panel{background:var(--bg-light-card);border-top:1px solid var(--border-light);border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);}
-.extra-panel-inner{width:var(--extra-w);padding:30px 20px;display:flex;flex-direction:column;gap:20px;}
-.extra-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:20px;color:var(--green);text-transform:uppercase;letter-spacing:1px;line-height:1.2;}
-.extra-divider{width:100%;height:1px;margin:4px 0;}
-body.dark .extra-divider{background:var(--border);}body.light .extra-divider{background:var(--border-light);}
-.extra-section{display:flex;flex-direction:column;gap:10px;}
-.extra-section-label{font-size:13px;font-weight:600;color:var(--green);opacity:.7;text-transform:uppercase;letter-spacing:.5px;}
-.extra-toggle-row{display:flex;gap:6px;}
-.wrapper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;}
-body.dark .wrapper::before{background:radial-gradient(120% 120% at -10% -20%, rgba(255,255,255,.12), transparent 42%),radial-gradient(90% 90% at 120% 120%, rgba(255,255,255,.08), transparent 48%);}
-body.light .wrapper::before{background:radial-gradient(120% 120% at -10% -20%, rgba(0,0,0,.09), transparent 42%),radial-gradient(90% 90% at 120% 120%, rgba(0,0,0,.06), transparent 48%);}
+body{margin:0;padding:0;background:radial-gradient(circle at 0% 0%, #131327 0%, #050507 48%, #040405 100%);font-family:'Manrope',sans-serif;color:var(--text);overflow:hidden;user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+.app{position:relative;display:flex;width:980px;height:600px;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,#090911,#050508 46%,#07070F);box-shadow:0 38px 90px rgba(0,0,0,.72),inset 0 0 0 1px rgba(255,255,255,.03);}
+.drag{position:absolute;top:0;left:0;right:132px;height:48px;z-index:20;}
+.window-controls{position:absolute;top:10px;right:12px;display:flex;gap:10px;z-index:40;}
+.win-btn{width:36px;height:30px;border-radius:10px;border:1px solid #31314A;background:linear-gradient(180deg,#171727,#0D0D18);color:#E1E1F4;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;}
+.win-btn:hover{transform:translateY(-1px);border-color:var(--violet-soft);color:#FFF;}
+.win-btn.close:hover{border-color:var(--danger);color:var(--danger);}
+.sidebar{width:250px;padding:62px 18px 18px;border-right:1px solid var(--line);background:linear-gradient(180deg,#10101A,#0B0B13);display:flex;flex-direction:column;gap:16px;}
+.brand{display:flex;align-items:center;gap:12px;}
+.logo{width:36px;height:36px;border-radius:11px;border:1px solid #34344E;background:linear-gradient(135deg,#23233A,#141426);display:flex;align-items:center;justify-content:center;}
+.logo svg{width:22px;height:22px;fill:#FFF;}
+.brand-name{font-family:'Unbounded',sans-serif;font-size:18px;color:#FFF;letter-spacing:.2px;}
+.bars{width:44px;padding:8px 10px;border-radius:12px;border:1px solid #2E2E46;background:#131322;display:flex;flex-direction:column;gap:5px;}
+.bars span{height:2px;border-radius:999px;background:linear-gradient(90deg,var(--violet),#FFF);}
+.bars span:nth-child(2){opacity:.82;} .bars span:nth-child(3){opacity:.64;}
+.badge{width:max-content;padding:6px 12px;border-radius:999px;border:1px solid rgba(57,227,142,.45);background:rgba(57,227,142,.1);color:#CDFBE4;font-size:12px;font-weight:800;letter-spacing:.35px;text-transform:uppercase;}
+.nav{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.nav-btn{height:42px;border-radius:12px;border:1px solid #2C2C44;background:#11111B;color:#ECECFA;text-align:left;padding:0 14px;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;}
+.nav-btn:hover{border-color:var(--violet-soft);transform:translateX(2px);} .nav-btn.active{border-color:rgba(143,93,255,.74);background:linear-gradient(90deg,rgba(143,93,255,.33),rgba(143,93,255,.1));}
+.sidebar-bottom{margin-top:auto;}
+.tg-btn{width:100%;height:46px;border-radius:13px;border:1px solid #3A3A56;background:linear-gradient(180deg,#18182A,#11111E);color:#FFF;font-size:18px;font-weight:900;cursor:pointer;transition:.2s;}
+.tg-btn:hover{border-color:var(--violet);box-shadow:0 0 0 1px rgba(143,93,255,.25),0 12px 24px rgba(143,93,255,.21);}
+.content{flex:1;padding:64px 26px 22px;position:relative;}
+.view{display:none;height:100%;flex-direction:column;gap:14px;} .view.active{display:flex;}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.title{font-family:'Unbounded',sans-serif;font-size:33px;color:#FFF;}
+.version{font-family:'Unbounded',sans-serif;font-size:20px;color:#ECECFA;}
+.hero{border-radius:18px;border:1px solid #32324D;background:linear-gradient(120deg,rgba(143,93,255,.22) 0%, rgba(17,17,33,.9) 40%, rgba(11,11,20,.96) 100%);box-shadow:0 18px 34px rgba(0,0,0,.34);padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-height:186px;}
+.hero-head{display:flex;justify-content:space-between;align-items:flex-start;}
+.hero-badge{width:max-content;padding:7px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#F6F6FF;font-size:12px;font-weight:800;letter-spacing:.35px;text-transform:uppercase;}
+.hero-dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 14px rgba(57,227,142,.7);}
+.hero-title{font-family:'Unbounded',sans-serif;font-size:38px;line-height:1.05;color:#FFF;max-width:620px;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{padding:6px 11px;border-radius:10px;border:1px solid #373752;background:#111120;color:#ECECF8;font-size:13px;font-weight:700;}
+.desc{font-size:28px;line-height:1.22;font-weight:700;letter-spacing:.1px;color:#F3F3FC;}
+.home-actions{display:flex;gap:12px;}
+.ghost{flex:1;height:52px;border-radius:14px;border:1px solid #373753;background:#0E0E18;color:#F5F5FF;font-size:20px;font-weight:900;cursor:pointer;transition:.2s;}
+.ghost:hover{border-color:var(--violet-soft);}
+.launch{width:100%;height:66px;border:none;border-radius:16px;background:linear-gradient(90deg,var(--violet),var(--violet-soft));color:#FFF;font-size:34px;font-weight:900;letter-spacing:.4px;cursor:pointer;transition:.24s;}
+.launch:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(143,93,255,.36);} .launch.terminate{background:linear-gradient(90deg,#C63253,#FF5D7E);}
+.panel{height:100%;border-radius:16px;border:1px solid #33334D;background:linear-gradient(180deg,#11111C,#0D0D17);padding:16px;display:flex;flex-direction:column;gap:12px;}
+.panel-title{margin:0;font-family:'Unbounded',sans-serif;font-size:26px;color:#FFF;}
+.field{display:flex;flex-direction:column;gap:8px;}
+.label{font-size:14px;color:var(--muted);font-weight:800;letter-spacing:.2px;}
+.input{height:46px;border-radius:12px;border:1px solid #35354F;background:#0A0A14;color:#FFF;padding:0 14px;font-size:16px;font-weight:700;outline:none;} .input:focus{border-color:var(--violet-soft);}
+.range-row{display:flex;justify-content:space-between;align-items:center;}
+.range{width:100%;height:12px;accent-color:var(--violet);}
+.lang-row{display:flex;gap:8px;}
+.lang-btn{flex:1;height:42px;border-radius:10px;border:1px solid #35354F;background:#111121;color:#E8E8F3;font-weight:900;cursor:pointer;} .lang-btn.active{border-color:var(--violet);background:rgba(143,93,255,.22);color:#FFF;}
+.save{margin-top:auto;height:50px;border:none;border-radius:12px;background:#F6F6FF;color:#090910;font-size:20px;font-weight:900;cursor:pointer;}
+.status-top{display:flex;justify-content:space-between;align-items:center;}
+.status-line{font-size:18px;color:#ECECFA;font-weight:800;}
+.status-sub{font-size:13px;color:var(--muted);font-weight:700;}
+.progress-numbers{display:flex;justify-content:space-between;color:#D8D8EF;font-size:13px;font-weight:700;}
+.progress-track{height:18px;border-radius:999px;border:1px solid #373752;background:#10101D;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--violet-soft));transition:width .2s linear;}
+.tri{display:flex;gap:10px;}
+.tri-track{flex:1;height:12px;border-radius:999px;border:1px solid #393954;background:#0F0F1A;overflow:hidden;}
+.tri-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),#CAB8FF);transition:width .2s linear;}
+.error{flex:1;margin:0;border-radius:12px;border:1px solid #3C2734;background:rgba(255,93,126,.08);color:#FFB7C5;padding:12px;font-family:Consolas,monospace;font-size:12px;overflow:auto;white-space:pre-wrap;}
+.cancel{height:46px;border-radius:12px;border:1px solid rgba(255,93,126,.45);background:rgba(255,93,126,.14);color:#FFD9E1;font-size:16px;font-weight:900;cursor:pointer;}
+.toast{position:absolute;right:24px;bottom:20px;max-width:420px;padding:12px 14px;border-radius:12px;border:1px solid #3D3D5A;background:#111121;box-shadow:0 14px 30px rgba(0,0,0,.45);opacity:0;transform:translateY(20px);pointer-events:none;transition:.28s;}
+.toast.show{opacity:1;transform:translateY(0);} .toast strong{display:block;font-size:14px;color:#FFF;margin-bottom:3px;} .toast span{font-size:13px;color:#CDCEE3;}
 </style>
 )CSS";
 
-    std::wstring svgMoon = LR"(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>)";
-    std::wstring svgSun = LR"(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>)";
-    std::wstring svgChevron = LR"(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>)";
-
     std::wstring htmlBody = LR"HTML(
-<div class="outer-container">
-    <div class="wrapper">
-        <div class="title-drag-area" onmousedown="window.chrome.webview.postMessage('drag_window')"></div>
-        <div class="window-controls">
-            <div class="win-btn win-min" onclick="window.chrome.webview.postMessage('minimize')">&#8211;</div>
-            <div class="win-btn win-close" onclick="window.chrome.webview.postMessage('close')">&#10005;</div>
-        </div>
-        <div id="toast" class="toast"><div class="toast-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="toast-content"><span id="toast-title">Title</span><span id="toast-desc">Desc</span></div></div>
+<div class="app">
+  <div class="drag"></div>
+  <div class="window-controls">
+    <div class="win-btn" onclick="window.chrome.webview.postMessage('minimize')">&#8211;</div>
+    <div class="win-btn close" onclick="window.chrome.webview.postMessage('close')">&#10005;</div>
+  </div>
 
-        <div id="welcome-screen" class="welcome-screen">
-            <div class="welcome-title" id="welcomeTitle">Welcome</div>
-            <div class="welcome-subtitle text-main" id="welcomeSubtitle">Choose your preferences</div>
-            <div class="welcome-options">
-                <div class="welcome-row">
-                    <span class="welcome-row-label text-green" id="langLabel">Language</span>
-                    <div class="welcome-toggle">
-                        <div class="toggle-btn active" id="btnRu" onclick="setWelcomeLang('ru')">RU</div>
-                        <div class="toggle-btn" id="btnEn" onclick="setWelcomeLang('en')">EN</div>
-                    </div>
-                </div>
-                <div class="welcome-row">
-                    <span class="welcome-row-label text-green" id="themeLabel">Theme</span>
-                    <div class="welcome-toggle">
-                        <div class="toggle-btn active" id="btnDark" onclick="setWelcomeTheme('dark')">)HTML" + svgMoon + LR"HTML(</div>
-                        <div class="toggle-btn" id="btnLight" onclick="setWelcomeTheme('light')">)HTML" + svgSun + LR"HTML(</div>
-                    </div>
-                </div>
-            </div>
-            <button class="welcome-continue" id="welcomeContinueBtn" onclick="finishWelcome()">Continue</button>
-        </div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2.7 4.4 7.1v9.8l7.6 4.4 7.6-4.4V7.1z"/><path d="M8.2 8.8 12 11.3l3.8-2.5" fill="none" stroke="#09090F" stroke-width="1.8" stroke-linecap="round"/><path d="M8.2 15.2 12 12.7l3.8 2.5" fill="none" stroke="#09090F" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <div class="brand-name">__CHEAT_NAME__</div>
+    </div>
+    <div class="bars"><span></span><span></span><span></span></div>
+    <div class="badge" id="sideStatus">Online</div>
 
-        <div id="main-screen" class="screen inactive-right">
-            <div class="header-title font-unbounded text-green">
-                <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
-                    <path d="M16 2.5L27.2 9v14L16 29.5 4.8 23V9z" fill="currentColor" opacity=".16"/>
-                    <path d="M16 4.6l9.2 5.2v12.4L16 27.4 6.8 22.2V9.8z" fill="currentColor"/>
-                    <path class="logo-cut" d="M10.6 10.8l5.4 4.1 5.4-4.1"/>
-                    <path class="logo-cut" d="M10.6 21.2l5.4-4.1 5.4 4.1"/>
-                    <path class="logo-cut" d="M16 14.9v2.2"/>
-                </svg>
-                <span id="cheatNameTitle">EXAMPLE</span>
-            </div>
-            <div class="version-row font-unbounded text-green">Minecraft __MC_VERSION__</div>
-            <div class="image-frame">
-                <div class="hero-content">
-                    <div class="hero-top">
-                        <div class="hero-badge" id="heroBadge">Xlority Build</div>
-                        <div class="hero-dot"></div>
-                    </div>
-                    <div class="hero-title" id="heroTitle">Combat Grade</div>
-                    <div class="hero-tags">
-                        <div class="hero-tag" id="heroTag1">Minecraft 1.21.11</div>
-                        <div class="hero-tag" id="heroTag2">Stable Launch</div>
-                        <div class="hero-tag" id="heroTag3">FPS Focus</div>
-                    </div>
-                </div>
-            </div>
-            <div class="description font-medium text-main" id="mainDesc">desc</div>
-            <div class="quick-row">
-                <div class="quick-item" id="quickItem1">Fast Start</div>
-                <div class="quick-item" id="quickItem2">Stable Core</div>
-                <div class="quick-item" id="quickItem3">Fabric Ready</div>
-            </div>
-            <div class="btn-small btn-site font-semibold text-green" id="btnSiteText" onclick="window.open('https://t.me/xlority')">TG</div>
-            <div class="btn-small btn-settings font-semibold text-green" id="btnSettingsText" onclick="goToSettings()">Settings</div>
-            <button id="mainLaunchBtn" class="btn-launch font-semibold" onclick="handleMainButton()">Launch</button>
-        </div>
-
-        <div id="settings-screen" class="screen inactive-right">
-            <div class="screen-title text-green" id="settingsTitle">Settings</div>
-            <div class="nick-group">
-                <label class="nick-label" id="nickLabel">Nickname</label>
-                <div class="nick-row">
-                    <input type="text" id="nicknameInput" class="nick-input" placeholder="Player" maxlength="16" spellcheck="false" autocomplete="off">
-                    <button class="btn-nick-save" id="btnNickSave" onclick="saveNickname()">Save</button>
-                </div>
-            </div>
-            <div class="ram-group">
-                <div class="ram-header font-semibold text-green"><span id="ramLabel">RAM</span><span id="ramValue">4028MB</span></div>
-                <input type="range" min="1024" max="16384" value="4028" step="128" class="slider" id="ramSlider">
-            </div>
-            <div class="btn-extra-settings" id="btnExtraSettings" onclick="toggleExtraPanel()">
-                <span id="extraSettLabel">Advanced Settings</span>
-                )HTML" + svgChevron + LR"HTML(
-            </div>
-            <div class="btn-back font-semibold text-green" id="btnSaveExit" onclick="saveAndExitSettings()">Save & Exit</div>
-        </div>
-
-        <div id="loading-screen" class="screen inactive-right">
-            <div class="screen-title text-green" id="loadingTitle">Loading</div>
-            <div class="loader-subtitle" id="loaderStatus">Downloading...</div>
-            <div class="loader-image-large">
-                <div class="checkmark-container" id="successCheck">
-                    <svg class="checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>
-                </div>
-            </div>
-            <div class="loader-stats-row"><span id="currentMb">0.0MB</span><span id="totalMb">...</span></div>
-            <div class="loader-bar-bg-large"><div class="loader-bar-fill-large" id="loaderFill"></div></div>
-            <div class="error-log" id="errorLog"></div>
-            <div class="btn-cancel" id="btnCancelText" onclick="cancelInstall()">Cancel</div>
-        </div>
+    <div class="nav">
+      <button class="nav-btn active" id="navHomeBtn" onclick="showView('home')">Панель</button>
+      <button class="nav-btn" id="navSettingsBtn" onclick="showView('settings')">Настройки</button>
+      <button class="nav-btn" id="navStatusBtn" onclick="showView('status')">Загрузка</button>
     </div>
 
-    <div class="extra-panel" id="extraPanel">
-        <div class="extra-panel-inner">
-            <div class="extra-title" id="extraPanelTitle">)HTML" + cheatNameDisplay + LR"HTML(</div>
-            <div class="extra-divider"></div>
-            <div class="extra-section">
-                <div class="extra-section-label" id="extraThemeLabel">Theme</div>
-                <div class="extra-toggle-row">
-                    <div class="toggle-btn" id="settBtnDark" onclick="toggleTheme('dark')">)HTML" + svgMoon + LR"HTML(</div>
-                    <div class="toggle-btn" id="settBtnLight" onclick="toggleTheme('light')">)HTML" + svgSun + LR"HTML(</div>
-                </div>
-            </div>
-            <div class="extra-section">
-                <div class="extra-section-label" id="extraLangLabel">Language</div>
-                <div class="extra-toggle-row">
-                    <div class="toggle-btn" id="settBtnRu" onclick="toggleLang('ru')">RU</div>
-                    <div class="toggle-btn" id="settBtnEn" onclick="toggleLang('en')">EN</div>
-                </div>
-            </div>
-        </div>
+    <div class="sidebar-bottom">
+      <button class="tg-btn" id="tgBtn" onclick="window.open('https://t.me/xlority')">TG</button>
     </div>
+  </aside>
+
+  <main class="content">
+    <section class="view active" id="view-home">
+      <div class="top"><div class="title">__CHEAT_NAME__</div><div class="version">Minecraft __MC_VERSION__</div></div>
+
+      <div class="hero">
+        <div class="hero-head"><div class="hero-badge" id="heroBadge">СБОРКА XLORITY</div><div class="hero-dot"></div></div>
+        <div class="hero-title" id="heroTitle">Горизонтальный лаунчер нового поколения</div>
+        <div class="chips"><div class="chip" id="chip1">Черный UI</div><div class="chip" id="chip2">Белый текст</div><div class="chip" id="chip3">Фиолетовый акцент</div></div>
+      </div>
+
+      <div class="desc" id="mainDesc">Xlority Client - быстрый старт, чистый интерфейс и стабильная установка.</div>
+
+      <div class="home-actions">
+        <button class="ghost" id="settingsOpenBtn" onclick="showView('settings')">Настройки</button>
+        <button class="ghost" id="statusOpenBtn" onclick="showView('status')">Процесс</button>
+      </div>
+
+      <button class="launch" id="launchBtn" onclick="handleLaunchClick()">Запустить</button>
+    </section>
+
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h3 class="panel-title" id="settingsTitle">Настройки</h3>
+
+        <div class="field">
+          <label class="label" id="nickLabel">Никнейм</label>
+          <input class="input" id="nicknameInput" maxlength="16" spellcheck="false" autocomplete="off" placeholder="Player" />
+        </div>
+
+        <div class="field">
+          <div class="range-row"><label class="label" id="ramLabel">Оперативная память</label><span class="label" id="ramValue">4028 MB</span></div>
+          <input type="range" min="1024" max="16384" step="128" value="4028" class="range" id="ramSlider" />
+        </div>
+
+        <div class="field">
+          <label class="label" id="langLabel">Язык</label>
+          <div class="lang-row">
+            <button class="lang-btn active" id="langRuBtn" onclick="switchLang('ru')">RU</button>
+            <button class="lang-btn" id="langEnBtn" onclick="switchLang('en')">EN</button>
+          </div>
+        </div>
+
+        <button class="save" id="saveBtn" onclick="saveSettings()">Сохранить</button>
+      </div>
+    </section>
+
+    <section class="view" id="view-status">
+      <div class="panel">
+        <div class="status-top"><h3 class="panel-title" id="statusTitle" style="margin:0;">Установка и запуск</h3><span class="status-sub" id="statusSub">Fabric 1.21.11</span></div>
+        <div class="status-line" id="loaderStatus">Готово к запуску</div>
+
+        <div class="progress-numbers"><span id="currentMb">0.0MB</span><span id="totalMb">...</span></div>
+        <div class="progress-track"><div class="progress-fill" id="loaderFill"></div></div>
+
+        <div class="tri"><div class="tri-track"><div class="tri-fill" id="tri1"></div></div><div class="tri-track"><div class="tri-fill" id="tri2"></div></div><div class="tri-track"><div class="tri-fill" id="tri3"></div></div></div>
+
+        <pre class="error" id="errorLog"></pre>
+        <button class="cancel" id="cancelBtn" onclick="cancelInstall()">Отменить</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"><strong id="toastTitle">title</strong><span id="toastText">text</span></div>
 </div>
 )HTML";
 
-    std::wstring js1a = LR"JS(
+    std::wstring jsA = LR"JS(
 <script>
-const mainScreen=document.getElementById('main-screen'),settingsScreen=document.getElementById('settings-screen'),loadingScreen=document.getElementById('loading-screen'),welcomeScreen=document.getElementById('welcome-screen'),extraPanel=document.getElementById('extraPanel');
-let isGameRunning=false,currentLang='ru',currentTheme='dark',currentNickname='Player',extraPanelOpen=false;
-)JS";
+const viewHome=document.getElementById('view-home');
+const viewSettings=document.getElementById('view-settings');
+const viewStatus=document.getElementById('view-status');
+const navHomeBtn=document.getElementById('navHomeBtn');
+const navSettingsBtn=document.getElementById('navSettingsBtn');
+const navStatusBtn=document.getElementById('navStatusBtn');
+const ramSlider=document.getElementById('ramSlider');
+const ramValue=document.getElementById('ramValue');
+const nicknameInput=document.getElementById('nicknameInput');
+let currentLang='ru';
+let currentNickname='Player';
+let isGameRunning=false;
 
-    std::wstring js1b = LR"JS(
 const L={
-ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'TG',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Xlority Client - точный контроль, стабильный FPS и преимущество в каждом бою.',heroBadge:'Сборка Xlority',heroTitle:'Полная боевая готовность',heroTag1:'Minecraft 1.21.11',heroTag2:'Стабильный запуск',heroTag3:'FPS фокус',quick1:'Быстрый старт',quick2:'Стабильное ядро',quick3:'Fabric готов',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
-en:{welcome:'Welcome',choosePrefs:'Choose your preferences',language:'Language',theme:'Theme',continue_:'Continue',settings:'Settings',ram:'RAM',saveExit:'Save & Exit',site:'TG',launch:'Launch',terminate:'Terminate',cancel:'Cancel',loading:'Loading',done:'Done',desc:'Xlority Client - precise control, stable FPS, and an edge in every fight.',heroBadge:'Xlority Build',heroTitle:'Full Combat Readiness',heroTag1:'Minecraft 1.21.11',heroTag2:'Stable Launch',heroTag3:'FPS Focus',quick1:'Fast Start',quick2:'Stable Core',quick3:'Fabric Ready',settingsSaved:'Configuration saved',launchedCache:'Launched from cache',gameTerminated:'Game terminated',clientLaunched:'Client launched',process:'Process',nickname:'Nickname',save:'Save',nickSaved:'Nickname saved',nickEmpty:'Enter a nickname',extraSettings:'Advanced Settings'}};
-function t(k){return L[currentLang][k]||k;}
-)JS";
+ru:{navHome:'Панель',navSettings:'Настройки',navStatus:'Загрузка',online:'Online',heroBadge:'СБОРКА XLORITY',heroTitle:'Горизонтальный лаунчер нового поколения',chip1:'Черный UI',chip2:'Белый текст',chip3:'Фиолетовый акцент',desc:'Xlority Client - быстрый старт, чистый интерфейс и стабильная установка.',settingsOpen:'Настройки',statusOpen:'Процесс',launch:'Запустить',terminate:'Завершить',settingsTitle:'Настройки',nick:'Никнейм',ram:'Оперативная память',lang:'Язык',save:'Сохранить',statusTitle:'Установка и запуск',ready:'Готово к запуску',cancel:'Отменить',done:'Готово',process:'Процесс',cache:'Запущено из кеша',stopped:'Игра завершена',started:'Клиент запущен',saved:'Настройки сохранены',nickEmpty:'Введите никнейм'},
+en:{navHome:'Dashboard',navSettings:'Settings',navStatus:'Loader',online:'Online',heroBadge:'XLORITY BUILD',heroTitle:'New generation horizontal launcher',chip1:'Black UI',chip2:'White text',chip3:'Violet accent',desc:'Xlority Client - fast start, clean interface, and stable installation.',settingsOpen:'Settings',statusOpen:'Process',launch:'Launch',terminate:'Terminate',settingsTitle:'Settings',nick:'Nickname',ram:'RAM',lang:'Language',save:'Save',statusTitle:'Install and launch',ready:'Ready to launch',cancel:'Cancel',done:'Done',process:'Process',cache:'Launched from cache',stopped:'Game terminated',started:'Client launched',saved:'Settings saved',nickEmpty:'Enter a nickname'}
+};
 
-    std::wstring js1c = LR"JS(
-function refreshSlider(){const s=document.getElementById('ramSlider');updateSliderBackground(s.value,s.min,s.max);}
+function t(k){return (L[currentLang]&&L[currentLang][k])?L[currentLang][k]:k;}
+function setNav(name){navHomeBtn.classList.toggle('active',name==='home');navSettingsBtn.classList.toggle('active',name==='settings');navStatusBtn.classList.toggle('active',name==='status');}
+function showView(name){viewHome.classList.toggle('active',name==='home');viewSettings.classList.toggle('active',name==='settings');viewStatus.classList.toggle('active',name==='status');setNav(name);}
+function setLangButtons(){const ru=(currentLang==='ru');document.getElementById('langRuBtn').classList.toggle('active',ru);document.getElementById('langEnBtn').classList.toggle('active',!ru);}
 function applyLang(){
-document.getElementById('welcomeTitle').innerText=t('welcome');document.getElementById('welcomeSubtitle').innerText=t('choosePrefs');
-document.getElementById('langLabel').innerText=t('language');document.getElementById('themeLabel').innerText=t('theme');
-document.getElementById('welcomeContinueBtn').innerText=t('continue_');document.getElementById('settingsTitle').innerText=t('settings');
-document.getElementById('ramLabel').innerText=t('ram');document.getElementById('btnSaveExit').innerText=t('saveExit');
-document.getElementById('btnSiteText').innerText=t('site');document.getElementById('btnSettingsText').innerText=t('settings');
-document.getElementById('loadingTitle').innerText=t('loading');document.getElementById('btnCancelText').innerText=t('cancel');
-document.getElementById('mainDesc').innerText=t('desc');
-document.getElementById('heroBadge').innerText=t('heroBadge');
-document.getElementById('heroTitle').innerText=t('heroTitle');
-document.getElementById('heroTag1').innerText=t('heroTag1');
-document.getElementById('heroTag2').innerText=t('heroTag2');
-document.getElementById('heroTag3').innerText=t('heroTag3');
-document.getElementById('quickItem1').innerText=t('quick1');
-document.getElementById('quickItem2').innerText=t('quick2');
-document.getElementById('quickItem3').innerText=t('quick3');
-document.getElementById('nickLabel').innerText=t('nickname');
-document.getElementById('btnNickSave').innerText=t('save');
-document.getElementById('extraSettLabel').innerText=t('extraSettings');
-document.getElementById('extraThemeLabel').innerText=t('theme');
-document.getElementById('extraLangLabel').innerText=t('language');
-const btn=document.getElementById('mainLaunchBtn');
-if(!isGameRunning)btn.innerText=t('launch');else btn.innerText=t('terminate');}
-function applyTheme(th){currentTheme=th;document.body.classList.remove('dark','light');document.body.classList.add(th);
-document.getElementById('settBtnDark').classList.toggle('active',th==='dark');
-document.getElementById('settBtnLight').classList.toggle('active',th==='light');refreshSlider();}
-function applySettingsLang(lang){currentLang=lang;
-document.getElementById('settBtnRu').classList.toggle('active',lang==='ru');
-document.getElementById('settBtnEn').classList.toggle('active',lang==='en');applyLang();}
-function setWelcomeLang(lang){currentLang=lang;document.getElementById('btnRu').classList.toggle('active',lang==='ru');document.getElementById('btnEn').classList.toggle('active',lang==='en');applyLang();}
-function setWelcomeTheme(th){document.getElementById('btnDark').classList.toggle('active',th==='dark');document.getElementById('btnLight').classList.toggle('active',th==='light');applyTheme(th);}
-function toggleTheme(th){applyTheme(th);window.chrome.webview.postMessage("set_theme:"+th);}
-function toggleLang(lang){applySettingsLang(lang);window.chrome.webview.postMessage("set_lang:"+lang);}
-function finishWelcome(){welcomeScreen.classList.add('hidden');mainScreen.classList.remove('inactive-right');mainScreen.classList.add('active');window.chrome.webview.postMessage("welcome_done:"+currentLang+":"+currentTheme);}
-function goToSettings(){mainScreen.classList.remove('active');mainScreen.classList.add('inactive-left');settingsScreen.classList.remove('inactive-right');settingsScreen.classList.add('active');document.getElementById('nicknameInput').value=currentNickname;}
-function toggleExtraPanel(){
-    extraPanelOpen=!extraPanelOpen;
-    const btn=document.getElementById('btnExtraSettings');
-    if(extraPanelOpen){extraPanel.classList.add('open');btn.classList.add('open');window.chrome.webview.postMessage("extra_panel:open");}
-    else{extraPanel.classList.remove('open');btn.classList.remove('open');window.chrome.webview.postMessage("extra_panel:close");}
+  navHomeBtn.innerText=t('navHome');navSettingsBtn.innerText=t('navSettings');navStatusBtn.innerText=t('navStatus');document.getElementById('sideStatus').innerText=t('online');
+  document.getElementById('heroBadge').innerText=t('heroBadge');document.getElementById('heroTitle').innerText=t('heroTitle');document.getElementById('chip1').innerText=t('chip1');document.getElementById('chip2').innerText=t('chip2');document.getElementById('chip3').innerText=t('chip3');document.getElementById('mainDesc').innerText=t('desc');
+  document.getElementById('settingsOpenBtn').innerText=t('settingsOpen');document.getElementById('statusOpenBtn').innerText=t('statusOpen');
+  document.getElementById('settingsTitle').innerText=t('settingsTitle');document.getElementById('nickLabel').innerText=t('nick');document.getElementById('ramLabel').innerText=t('ram');document.getElementById('langLabel').innerText=t('lang');document.getElementById('saveBtn').innerText=t('save');
+  document.getElementById('statusTitle').innerText=t('statusTitle');if(document.getElementById('loaderStatus').innerText.trim()===''){document.getElementById('loaderStatus').innerText=t('ready');}
+  document.getElementById('cancelBtn').innerText=t('cancel');
+  const lb=document.getElementById('launchBtn');lb.innerText=isGameRunning?t('terminate'):t('launch');
 }
-function closeExtraPanel(){
-    if(extraPanelOpen){extraPanelOpen=false;extraPanel.classList.remove('open');document.getElementById('btnExtraSettings').classList.remove('open');window.chrome.webview.postMessage("extra_panel:close");}
-}
-function saveNickname(){
-    let nick=document.getElementById('nicknameInput').value.trim();
-    nick=nick.replace(/[^A-Za-z0-9_]/g,'');
-    if(nick.length===0){showToast(t('nickname'),t('nickEmpty'));return;}
-    if(nick.length>16)nick=nick.substring(0,16);
-    document.getElementById('nicknameInput').value=nick;
-    currentNickname=nick;
-    window.chrome.webview.postMessage("save_nick:"+nick);
-    showToast(t('nickname'),t('nickSaved')+': '+nick);
-}
-function saveAndExitSettings(){closeExtraPanel();settingsScreen.classList.remove('active');settingsScreen.classList.add('inactive-right');mainScreen.classList.remove('inactive-left');mainScreen.classList.add('active');let ram=document.getElementById('ramSlider').value;window.chrome.webview.postMessage("save_ram:"+ram);showToast(t('settings'),t('settingsSaved'));}
-function showToast(title,desc){const toast=document.getElementById('toast');document.getElementById('toast-title').innerText=title;document.getElementById('toast-desc').innerText=desc;toast.classList.add('show');setTimeout(()=>{toast.classList.remove('show');},3000);}
-const slider=document.getElementById('ramSlider'),output=document.getElementById('ramValue');
-function updateSliderBackground(v,mn,mx){const p=((v-mn)/(mx-mn))*100;const bg=currentTheme==='dark'?'#212121':'#E0E0E0';slider.style.background='linear-gradient(to right, var(--green) '+p+'%, '+bg+' '+p+'%)';}
-slider.addEventListener('input',function(){output.innerHTML=this.value+"MB";updateSliderBackground(this.value,this.min,this.max);});
-function handleMainButton(){window.chrome.webview.postMessage("action_button");}
-function cancelInstall(){window.chrome.webview.postMessage("cancel_install");loadingScreen.classList.remove('active');loadingScreen.classList.add('inactive-right');mainScreen.classList.remove('inactive-left');mainScreen.classList.add('active');}
-function setRunningState(r){isGameRunning=r;const btn=document.getElementById('mainLaunchBtn');if(r){btn.innerText=t('terminate');btn.classList.add('btn-quit-mode');}else{btn.innerText=t('launch');btn.classList.remove('btn-quit-mode');}}
-)JS";
-
-    std::wstring js1 = js1a + js1b + js1c;
-
-    std::wstring js2 = LR"JS(
-function startLoadingUI(){closeExtraPanel();mainScreen.classList.remove('active');mainScreen.classList.add('inactive-left');loadingScreen.classList.remove('inactive-right');loadingScreen.classList.add('active');document.getElementById('successCheck').style.display='none';document.getElementById('loaderFill').style.width='0%';document.getElementById('errorLog').style.display='none';document.getElementById('errorLog').innerText='';}
-function updateProgress(p,c,tot,s){document.getElementById('loaderFill').style.width=p+'%';document.getElementById('currentMb').innerText=c;document.getElementById('totalMb').innerText=tot;document.getElementById('loaderStatus').innerText=s;}
-function showError(m){const el=document.getElementById('errorLog');el.style.display='block';el.innerText+=m+'\n';el.scrollTop=el.scrollHeight;}
-function finishLoading(){document.getElementById('loaderStatus').innerText=t('done');document.getElementById('loaderStatus').style.color='var(--green)';document.getElementById('successCheck').style.display='flex';setTimeout(()=>{loadingScreen.classList.remove('active');loadingScreen.classList.add('inactive-right');mainScreen.classList.remove('inactive-left');mainScreen.classList.add('active');setRunningState(true);showToast(t('done'),t('clientLaunched'));},2500);}
-function skipWelcome(lang,theme,nick){currentLang=lang;currentNickname=nick||'Player';applyTheme(theme);applySettingsLang(lang);applyLang();welcomeScreen.classList.add('hidden');mainScreen.classList.remove('inactive-right');mainScreen.classList.add('active');}
-window.chrome.webview.addEventListener('message',event=>{const msg=event.data;
-if(msg.type==='progress'){updateProgress(msg.percent,msg.current,msg.total,msg.status);}
-else if(msg.type==='finish_install'){finishLoading();}
-else if(msg.type==='set_ram'){slider.value=msg.value;output.innerText=msg.value+"MB";updateSliderBackground(slider.value,slider.min,slider.max);}
-else if(msg.type==='launch_success'){setRunningState(true);showToast(t('process'),t('launchedCache'));}
-else if(msg.type==='start_load'){startLoadingUI();}
-else if(msg.type==='install_canceled'){setRunningState(false);showToast(t('loading'),t('cancel'));}
-else if(msg.type==='process_stopped'){setRunningState(false);showToast(t('process'),t('gameTerminated'));}
-else if(msg.type==='error'){showError(msg.message);}
-else if(msg.type==='init_settings'){skipWelcome(msg.lang,msg.theme,msg.nickname);}
-else if(msg.type==='set_nickname'){currentNickname=msg.value;document.getElementById('nicknameInput').value=msg.value;}
+function showToast(title,text){const toast=document.getElementById('toast');document.getElementById('toastTitle').innerText=title;document.getElementById('toastText').innerText=text;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600);}
+function setRunningState(v){isGameRunning=v;const b=document.getElementById('launchBtn');b.classList.toggle('terminate',v);b.innerText=v?t('terminate'):t('launch');}
+function tri(p){const x=Math.max(0,Math.min(100,Number(p)||0));document.getElementById('tri1').style.width=Math.min(100,x*3)+'%';document.getElementById('tri2').style.width=Math.min(100,Math.max(0,(x-33.33)*3))+'%';document.getElementById('tri3').style.width=Math.min(100,Math.max(0,(x-66.66)*3))+'%';}
+function startLoadingUI(){showView('status');document.getElementById('loaderFill').style.width='0%';document.getElementById('loaderStatus').innerText=t('ready');document.getElementById('errorLog').innerText='';tri(0);}
+function updateProgress(p,c,tot,s){const x=Math.max(0,Math.min(100,Number(p)||0));document.getElementById('loaderFill').style.width=x+'%';document.getElementById('currentMb').innerText=c||'0.0MB';document.getElementById('totalMb').innerText=tot||'...';document.getElementById('loaderStatus').innerText=s||t('statusTitle');tri(x);}
+function finishLoading(){document.getElementById('loaderStatus').innerText=t('done');document.getElementById('loaderFill').style.width='100%';tri(100);setTimeout(()=>{showView('home');setRunningState(true);showToast(t('done'),t('started'));},1200);}
+function showError(m){const el=document.getElementById('errorLog');const line=(m||'').trim();if(!line)return;el.innerText+=line+'\n';el.scrollTop=el.scrollHeight;}
+function handleLaunchClick(){window.chrome.webview.postMessage('action_button');}
+function cancelInstall(){window.chrome.webview.postMessage('cancel_install');}
+function switchLang(lang){currentLang=(lang==='en')?'en':'ru';setLangButtons();applyLang();window.chrome.webview.postMessage('set_lang:'+currentLang);}
+function cleanNick(v){let n=(v||'').trim().replace(/[^A-Za-z0-9_]/g,'');if(n.length>16)n=n.substring(0,16);return n;}
+function saveSettings(){let nick=cleanNick(nicknameInput.value);if(nick.length===0){showToast(t('nick'),t('nickEmpty'));return;}nicknameInput.value=nick;currentNickname=nick;window.chrome.webview.postMessage('save_nick:'+nick);const ram=Number(ramSlider.value)||4028;window.chrome.webview.postMessage('save_ram:'+ram);showToast(t('settingsTitle'),t('saved'));showView('home');}
+ramSlider.addEventListener('input',()=>{ramValue.innerText=ramSlider.value+' MB';});
+window.chrome.webview.addEventListener('message',(event)=>{const msg=event.data;
+ if(msg.type==='progress'){updateProgress(msg.percent,msg.current,msg.total,msg.status);}else if(msg.type==='finish_install'){finishLoading();}
+ else if(msg.type==='set_ram'){const v=Number(msg.value)||4028;ramSlider.value=v;ramValue.innerText=v+' MB';}
+ else if(msg.type==='launch_success'){setRunningState(true);showToast(t('process'),t('cache'));}
+ else if(msg.type==='start_load'){startLoadingUI();}
+ else if(msg.type==='install_canceled'){setRunningState(false);showToast(t('statusTitle'),t('cancel'));showView('home');}
+ else if(msg.type==='process_stopped'){setRunningState(false);showToast(t('process'),t('stopped'));}
+ else if(msg.type==='error'){showError(msg.message);}
+ else if(msg.type==='init_settings'){if(msg.lang==='en'||msg.lang==='ru')currentLang=msg.lang;if(typeof msg.nickname==='string'&&msg.nickname.length>0){currentNickname=msg.nickname;nicknameInput.value=msg.nickname;}setLangButtons();applyLang();}
+ else if(msg.type==='set_nickname'){if(typeof msg.value==='string'&&msg.value.length>0){currentNickname=msg.value;nicknameInput.value=msg.value;}}
 });
-applyLang();applyTheme('dark');
+showView('home');setLangButtons();applyLang();ramValue.innerText=ramSlider.value+' MB';document.getElementById('loaderStatus').innerText=t('ready');tri(0);
 </script>
 )JS";
 
     std::wstring html =
         L"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">"
-        L"<link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Unbounded:wght@400;500;700&display=swap\" rel=\"stylesheet\">" +
-        css1 + css2 + css3 + css4 + css5 + L"</head><body class=\"dark\">" + htmlBody + js1 + js2 + L"</body></html>";
+        L"<link href=\"https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Unbounded:wght@500;700;800&display=swap\" rel=\"stylesheet\">" +
+        cssA + L"</head><body>" + htmlBody + jsA + L"</body></html>";
 
-    std::wstring ph = L"EXAMPLE";
+    std::wstring namePlaceholder = L"__CHEAT_NAME__";
     size_t pos = 0;
-    while ((pos = html.find(ph, pos)) != std::wstring::npos) {
-        html.replace(pos, ph.length(), cheatNameDisplay);
+    while ((pos = html.find(namePlaceholder, pos)) != std::wstring::npos) {
+        html.replace(pos, namePlaceholder.length(), cheatNameDisplay);
         pos += cheatNameDisplay.length();
     }
 
@@ -1579,7 +1416,6 @@ applyLang();applyTheme('dark');
         html.replace(pos, versionPlaceholder.length(), MC_VERSION);
         pos += MC_VERSION.length();
     }
-
     WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) }; wcex.style = CS_HREDRAW | CS_VREDRAW; wcex.lpfnWndProc = WndProc;
     wcex.hInstance = hInstance; wcex.hCursor = LoadCursor(nullptr, IDC_ARROW); wcex.lpszClassName = L"LauncherClass";
     RegisterClassExW(&wcex);
@@ -1679,7 +1515,7 @@ applyLang();applyTheme('dark');
                                 std::wstring js = L"{ \"type\": \"set_ram\", \"value\": " + std::to_wstring(saved.ram) + L" }";
                                 g_webview->PostWebMessageAsJson(js.c_str());
                                 if (saved.hasPrefs) {
-                                    std::wstring ls = saved.langRu ? L"ru" : L"en", ts = saved.darkTheme ? L"dark" : L"light";
+                                    std::wstring ls = saved.langRu ? L"ru" : L"en", ts = L"dark";
                                     std::string nickJson = SanitizeNicknameForJson(saved.nickname);
                                     std::wstring initJs = L"{ \"type\": \"init_settings\", \"lang\": \"" + ls + L"\", \"theme\": \"" + ts + L"\", \"nickname\": \"" + Utf8ToWide(nickJson) + L"\" }";
                                     g_webview->PostWebMessageAsJson(initJs.c_str());
@@ -1697,3 +1533,4 @@ applyLang();applyTheme('dark');
     MSG msg; while (GetMessage(&msg, nullptr, 0, 0)) { TranslateMessage(&msg); DispatchMessage(&msg); }
     return (int)msg.wParam;
 }
+
