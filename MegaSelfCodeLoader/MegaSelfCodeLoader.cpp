@@ -1147,7 +1147,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     case WM_NCHITTEST: {
         POINT p = { LOWORD(lParam), HIWORD(lParam) };
         ScreenToClient(hWnd, &p);
-        if (p.y < 48 && p.x < (MAIN_WIDTH - 128)) return HTCAPTION;
+        if (p.y < 44 && p.x < 560) return HTCAPTION;
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     case WM_DESTROY: g_CancelDownload = true; TerminateGame(); PostQuitMessage(0); break;
@@ -1179,7 +1179,7 @@ body{
   padding:0;
   background:#000;
   color:var(--text);
-  font-family:'Inter',sans-serif;
+  font-family:'Segoe UI Variable Text','Segoe UI',Tahoma,sans-serif;
   overflow:hidden;
   user-select:none;
   -webkit-font-smoothing:antialiased;
@@ -1215,14 +1215,31 @@ body{
 }
 .win-btn:hover{background:#171717;border-color:#3A3A3A;}
 .main{padding:54px 24px 18px;height:100%;display:flex;flex-direction:column;gap:12px;}
-.top{display:flex;justify-content:space-between;align-items:center;gap:14px;padding-bottom:10px;border-bottom:1px solid #1F1F1F;}
-.brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;padding-bottom:10px;border-bottom:1px solid #1F1F1F;}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
 .logo{width:30px;height:30px;border-radius:9px;border:1px solid #353535;background:#101010;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .logo svg{width:18px;height:18px;fill:#FFF;}
-.title{font-size:28px;line-height:1.05;font-weight:400;letter-spacing:.1px;white-space:nowrap;}
-.version{font-size:18px;font-weight:400;color:#F4F4F4;white-space:nowrap;}
-.desc{font-size:18px;line-height:1.35;font-weight:400;max-width:900px;color:#FAFAFA;padding:8px 0 6px;}
-.actions{display:flex;gap:10px;align-items:center;}
+.title{font-size:38px;line-height:1.02;font-weight:400;letter-spacing:.15px;white-space:nowrap;}
+.top-tabs{display:flex;align-items:flex-end;gap:8px;}
+.tab{
+  height:42px;
+  border-radius:10px 10px 0 0;
+  border:1px solid #333;
+  border-bottom-color:#1F1F1F;
+  background:#0D0D0D;
+  color:#F1F1F1;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  font-weight:400;
+  line-height:1;
+}
+.tab-version{font-size:24px;cursor:default;white-space:nowrap;}
+.tab-settings{font-size:18px;cursor:pointer;transition:.2s;}
+.tab-settings:hover{background:#151515;border-color:#474747;}
+.tab-settings.active{background:#FFF;color:#000;border-color:#FFF;border-bottom-color:#FFF;}
+.desc{font-size:22px;line-height:1.32;font-weight:400;max-width:930px;color:#FAFAFA;padding:10px 0 8px;}
+.actions{display:flex;align-items:center;}
 .btn{
   height:52px;
   border-radius:12px;
@@ -1236,7 +1253,7 @@ body{
   transition:.2s;
 }
 .btn:hover{background:#141414;border-color:#444;}
-.btn.launch{flex:1;font-size:24px;height:58px;background:#FFF;color:#000;border-color:#FFF;}
+.btn.launch{width:100%;font-size:28px;height:62px;background:#FFF;color:#000;border-color:#FFF;}
 .btn.launch:hover{filter:brightness(.95);}
 .btn.launch.terminate{background:#171717;color:#FFF;border-color:#464646;}
 .settings-panel{
@@ -1333,13 +1350,15 @@ body{
         <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2.7 4.4 7.1v9.8l7.6 4.4 7.6-4.4V7.1z"/><path d="M8.2 8.8 12 11.3l3.8-2.5" fill="none" stroke="#090909" stroke-width="1.8" stroke-linecap="round"/><path d="M8.2 15.2 12 12.7l3.8 2.5" fill="none" stroke="#090909" stroke-width="1.8" stroke-linecap="round"/></svg></div>
         <div class="title">__CHEAT_NAME__</div>
       </div>
-      <div class="version">Minecraft __MC_VERSION__</div>
+      <div class="top-tabs">
+        <div class="tab tab-version">Minecraft __MC_VERSION__</div>
+        <button class="tab tab-settings" id="settingsTabBtn" onclick="toggleSettings()">Настройки</button>
+      </div>
     </div>
 
     <div class="desc" id="mainDesc">Xlority — Лучший бесплатный чит клиент на Minecraft, с самым большим функционалом и лучшими обходами.</div>
 
     <div class="actions">
-      <button class="btn" id="settingsToggleBtn" onclick="toggleSettings()">Настройки</button>
       <button class="btn launch" id="launchBtn" onclick="handleLaunchClick()">Запустить</button>
     </div>
 
@@ -1385,7 +1404,7 @@ body{
 const settingsPanel=document.getElementById('settingsPanel');
 const loaderPanel=document.getElementById('loaderPanel');
 const launchBtn=document.getElementById('launchBtn');
-const settingsToggleBtn=document.getElementById('settingsToggleBtn');
+const settingsTabBtn=document.getElementById('settingsTabBtn');
 const nicknameInput=document.getElementById('nicknameInput');
 const ramSlider=document.getElementById('ramSlider');
 const ramValue=document.getElementById('ramValue');
@@ -1397,14 +1416,14 @@ let isGameRunning=false;
 const L={
 ru:{
   desc:'Xlority — Лучший бесплатный чит клиент на Minecraft, с самым большим функционалом и лучшими обходами.',
-  settings:'Настройки',launch:'Запустить',terminate:'Завершить',
+  settings:'Настройки',settingsTab:'Настройки',launch:'Запустить',terminate:'Завершить',
   nick:'Никнейм',ram:'Оперативная память',lang:'Язык',save:'Сохранить',
   ready:'Готово к запуску',cancel:'Отменить',done:'Готово',
   process:'Клиент',cache:'Запущено из кеша',stopped:'Игра завершена',started:'Клиент запущен',saved:'Настройки сохранены',nickEmpty:'Введите никнейм'
 },
 en:{
   desc:'Xlority — The best free Minecraft cheat client, with the biggest feature set and strongest bypasses.',
-  settings:'Settings',launch:'Launch',terminate:'Terminate',
+  settings:'Settings',settingsTab:'Settings',launch:'Launch',terminate:'Terminate',
   nick:'Nickname',ram:'RAM',lang:'Language',save:'Save',
   ready:'Ready to launch',cancel:'Cancel',done:'Done',
   process:'Client',cache:'Launched from cache',stopped:'Game terminated',started:'Client launched',saved:'Settings saved',nickEmpty:'Enter a nickname'
@@ -1419,9 +1438,10 @@ function applyLang(){
   document.getElementById('langLabel').innerText=t('lang');
   document.getElementById('saveBtn').innerText=t('save');
   document.getElementById('cancelBtn').innerText=t('cancel');
-  settingsToggleBtn.innerText=t('settings');
+  settingsTabBtn.innerText=t('settingsTab');
   launchBtn.innerText=isGameRunning?t('terminate'):t('launch');
   if(document.getElementById('loaderStatus').innerText.trim()==='')document.getElementById('loaderStatus').innerText=t('ready');
+  syncSettingsTab();
 }
 
 function showToast(title,text){
@@ -1446,6 +1466,7 @@ function setRunningState(v){
 
 function toggleSettings(){
   settingsPanel.classList.toggle('open');
+  syncSettingsTab();
 }
 
 function handleLaunchClick(){window.chrome.webview.postMessage('action_button');}
@@ -1471,6 +1492,11 @@ function saveSettings(){
 
   showToast(t('settings'),t('saved'));
   settingsPanel.classList.remove('open');
+  syncSettingsTab();
+}
+
+function syncSettingsTab(){
+  settingsTabBtn.classList.toggle('active',settingsPanel.classList.contains('open'));
 }
 
 ramSlider.addEventListener('input',()=>{ramValue.innerText=ramSlider.value+' MB';});
@@ -1533,8 +1559,7 @@ applyLang();
 )JS";
 
     std::wstring html =
-        L"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">"
-        L"<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap\" rel=\"stylesheet\">" +
+        L"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">" +
         css1 + L"</head><body>" + htmlBody + js1 + js2 + L"</body></html>";
 
     std::wstring namePlaceholder = L"__CHEAT_NAME__";
