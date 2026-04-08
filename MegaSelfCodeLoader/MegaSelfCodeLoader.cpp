@@ -1458,13 +1458,20 @@ body.light .wrapper::before{background:radial-gradient(120% 120% at -10% -20%, r
 </div>
 )HTML";
 
-    std::wstring js1 = LR"JS(
+    std::wstring js1a = LR"JS(
 <script>
 const mainScreen=document.getElementById('main-screen'),settingsScreen=document.getElementById('settings-screen'),loadingScreen=document.getElementById('loading-screen'),welcomeScreen=document.getElementById('welcome-screen'),extraPanel=document.getElementById('extraPanel');
 let isGameRunning=false,currentLang='ru',currentTheme='dark',currentNickname='Player',extraPanelOpen=false;
-const L={ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'TG',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Xlority Client - точный контроль, стабильный FPS и преимущество в каждом бою.',heroBadge:'Сборка Xlority',heroTitle:'Полная боевая готовность',heroTag1:'Minecraft 1.21.11',heroTag2:'Стабильный запуск',heroTag3:'FPS фокус',quick1:'Быстрый старт',quick2:'Стабильное ядро',quick3:'Fabric готов',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
+)JS";
+
+    std::wstring js1b = LR"JS(
+const L={
+ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'TG',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Xlority Client - точный контроль, стабильный FPS и преимущество в каждом бою.',heroBadge:'Сборка Xlority',heroTitle:'Полная боевая готовность',heroTag1:'Minecraft 1.21.11',heroTag2:'Стабильный запуск',heroTag3:'FPS фокус',quick1:'Быстрый старт',quick2:'Стабильное ядро',quick3:'Fabric готов',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
 en:{welcome:'Welcome',choosePrefs:'Choose your preferences',language:'Language',theme:'Theme',continue_:'Continue',settings:'Settings',ram:'RAM',saveExit:'Save & Exit',site:'TG',launch:'Launch',terminate:'Terminate',cancel:'Cancel',loading:'Loading',done:'Done',desc:'Xlority Client - precise control, stable FPS, and an edge in every fight.',heroBadge:'Xlority Build',heroTitle:'Full Combat Readiness',heroTag1:'Minecraft 1.21.11',heroTag2:'Stable Launch',heroTag3:'FPS Focus',quick1:'Fast Start',quick2:'Stable Core',quick3:'Fabric Ready',settingsSaved:'Configuration saved',launchedCache:'Launched from cache',gameTerminated:'Game terminated',clientLaunched:'Client launched',process:'Process',nickname:'Nickname',save:'Save',nickSaved:'Nickname saved',nickEmpty:'Enter a nickname',extraSettings:'Advanced Settings'}};
 function t(k){return L[currentLang][k]||k;}
+)JS";
+
+    std::wstring js1c = LR"JS(
 function refreshSlider(){const s=document.getElementById('ramSlider');updateSliderBackground(s.value,s.min,s.max);}
 function applyLang(){
 document.getElementById('welcomeTitle').innerText=t('welcome');document.getElementById('welcomeSubtitle').innerText=t('choosePrefs');
@@ -1529,6 +1536,8 @@ function handleMainButton(){window.chrome.webview.postMessage("action_button");}
 function cancelInstall(){window.chrome.webview.postMessage("cancel_install");loadingScreen.classList.remove('active');loadingScreen.classList.add('inactive-right');mainScreen.classList.remove('inactive-left');mainScreen.classList.add('active');}
 function setRunningState(r){isGameRunning=r;const btn=document.getElementById('mainLaunchBtn');if(r){btn.innerText=t('terminate');btn.classList.add('btn-quit-mode');}else{btn.innerText=t('launch');btn.classList.remove('btn-quit-mode');}}
 )JS";
+
+    std::wstring js1 = js1a + js1b + js1c;
 
     std::wstring js2 = LR"JS(
 function startLoadingUI(){closeExtraPanel();mainScreen.classList.remove('active');mainScreen.classList.add('inactive-left');loadingScreen.classList.remove('inactive-right');loadingScreen.classList.add('active');document.getElementById('successCheck').style.display='none';document.getElementById('loaderFill').style.width='0%';document.getElementById('errorLog').style.display='none';document.getElementById('errorLog').innerText='';}
