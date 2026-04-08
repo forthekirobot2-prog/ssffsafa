@@ -1180,9 +1180,14 @@ body.dark .text-main{color:var(--text-white);}body.light .text-main{color:var(--
 body.dark .text-faint{color:rgba(255,255,255,.32);}body.light .text-faint{color:rgba(0,0,0,.38);}
 .font-unbounded{font-family:'Unbounded',sans-serif;font-weight:500;}
 .font-medium{font-weight:500;}.font-semibold{font-weight:600;}
-.window-controls{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:1000;cursor:pointer;}
-.dot{width:18px;height:18px;border-radius:50%;transition:opacity .2s;}.dot:hover{opacity:.8;}
-.dot-orange{background:var(--orange);}.dot-red{background:var(--red);}
+.window-controls{position:absolute;top:10px;right:10px;display:flex;gap:8px;z-index:1000;}
+.win-btn{width:34px;height:26px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;line-height:1;cursor:pointer;transition:.2s;user-select:none;font-family:'Unbounded',sans-serif;}
+body.dark .win-btn{background:linear-gradient(180deg,#111,#090909);border:1px solid #2D2D2D;color:#D8D8D8;}
+body.light .win-btn{background:linear-gradient(180deg,#FAFAFA,#ECECEC);border:1px solid #D1D1D1;color:#111;}
+.win-btn:hover{transform:translateY(-1px);}
+.win-btn:active{transform:scale(.96);}
+.win-btn.win-min:hover{border-color:#FFB000;color:#FFB000;box-shadow:0 0 0 1px rgba(255,176,0,.2),0 8px 18px rgba(255,176,0,.15);}
+.win-btn.win-close:hover{border-color:#FF6A00;color:#FF6A00;box-shadow:0 0 0 1px rgba(255,106,0,.2),0 8px 18px rgba(255,106,0,.15);}
 .header-title{position:absolute;top:40px;left:30px;display:flex;align-items:center;gap:12px;font-size:26px;line-height:32px;}
 .logo-icon{width:32px;height:32px;fill:var(--green);filter:drop-shadow(0 0 9px rgba(var(--theme-rgb),.45));}
 .version-row{position:absolute;top:90px;left:30px;font-size:22px;white-space:nowrap;letter-spacing:.2px;}
@@ -1296,6 +1301,9 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
 .extra-section{display:flex;flex-direction:column;gap:10px;}
 .extra-section-label{font-size:13px;font-weight:600;color:var(--green);opacity:.7;text-transform:uppercase;letter-spacing:.5px;}
 .extra-toggle-row{display:flex;gap:6px;}
+.wrapper::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;}
+body.dark .wrapper::before{background:radial-gradient(120% 120% at -10% -20%, rgba(255,255,255,.12), transparent 42%),radial-gradient(90% 90% at 120% 120%, rgba(255,255,255,.08), transparent 48%);}
+body.light .wrapper::before{background:radial-gradient(120% 120% at -10% -20%, rgba(0,0,0,.09), transparent 42%),radial-gradient(90% 90% at 120% 120%, rgba(0,0,0,.06), transparent 48%);}
 </style>
 )CSS";
 
@@ -1308,8 +1316,8 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
     <div class="wrapper">
         <div class="title-drag-area" onmousedown="window.chrome.webview.postMessage('drag_window')"></div>
         <div class="window-controls">
-            <div class="dot dot-orange" onclick="window.chrome.webview.postMessage('minimize')"></div>
-            <div class="dot dot-red" onclick="window.chrome.webview.postMessage('close')"></div>
+            <div class="win-btn win-min" onclick="window.chrome.webview.postMessage('minimize')">&#8211;</div>
+            <div class="win-btn win-close" onclick="window.chrome.webview.postMessage('close')">&#10005;</div>
         </div>
         <div id="toast" class="toast"><div class="toast-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div class="toast-content"><span id="toast-title">Title</span><span id="toast-desc">Desc</span></div></div>
 
@@ -1337,13 +1345,13 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
 
         <div id="main-screen" class="screen inactive-right">
             <div class="header-title font-unbounded text-green">
-                <svg class="logo-icon" viewBox="0 0 24 24"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17V7L12 12L2 7V17Z"/><path d="M12 22V12"/></svg>
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2.2L3.7 7v10L12 21.8 20.3 17V7z" stroke-width="1.7"/><path d="M8 8.3l8 7.4M16 8.3l-8 7.4" stroke-width="2.2" stroke-linecap="round"/></svg>
                 <span id="cheatNameTitle">EXAMPLE</span>
             </div>
             <div class="version-row font-unbounded text-green">Minecraft __MC_VERSION__</div>
             <div class="image-frame"></div>
             <div class="description font-medium text-main" id="mainDesc">desc</div>
-            <div class="btn-small btn-site font-semibold text-green" id="btnSiteText" onclick="window.open('https://google.com')">Site</div>
+            <div class="btn-small btn-site font-semibold text-green" id="btnSiteText" onclick="window.open('https://t.me/xlority')">TG</div>
             <div class="btn-small btn-settings font-semibold text-green" id="btnSettingsText" onclick="goToSettings()">Settings</div>
             <button id="mainLaunchBtn" class="btn-launch font-semibold" onclick="handleMainButton()">Launch</button>
         </div>
@@ -1410,8 +1418,8 @@ body.dark .extra-divider{background:var(--border);}body.light .extra-divider{bac
 <script>
 const mainScreen=document.getElementById('main-screen'),settingsScreen=document.getElementById('settings-screen'),loadingScreen=document.getElementById('loading-screen'),welcomeScreen=document.getElementById('welcome-screen'),extraPanel=document.getElementById('extraPanel');
 let isGameRunning=false,currentLang='ru',currentTheme='dark',currentNickname='Player',extraPanelOpen=false;
-const L={ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'Сайт',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Xlority Client - твой путь к превосходству в каждом бою.',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
-en:{welcome:'Welcome',choosePrefs:'Choose your preferences',language:'Language',theme:'Theme',continue_:'Continue',settings:'Settings',ram:'RAM',saveExit:'Save & Exit',site:'Site',launch:'Launch',terminate:'Terminate',cancel:'Cancel',loading:'Loading',done:'Done',desc:'Xlority Client - your path to total advantage in every battle.',settingsSaved:'Configuration saved',launchedCache:'Launched from cache',gameTerminated:'Game terminated',clientLaunched:'Client launched',process:'Process',nickname:'Nickname',save:'Save',nickSaved:'Nickname saved',nickEmpty:'Enter a nickname',extraSettings:'Advanced Settings'}};
+const L={ru:{welcome:'Добро пожаловать',choosePrefs:'Выберите настройки',language:'Язык',theme:'Тема',continue_:'Продолжить',settings:'Настройки',ram:'Оперативная память',saveExit:'Сохранить и выйти',site:'TG',launch:'Запустить',terminate:'Завершить',cancel:'Отменить',loading:'Загрузка',done:'Готово',desc:'Xlority Client - твой путь к превосходству в каждом бою.',settingsSaved:'Конфигурация сохранена',launchedCache:'Запущен из кеша',gameTerminated:'Игра завершена',clientLaunched:'Клиент запущен',process:'Процесс',nickname:'Никнейм',save:'Сохранить',nickSaved:'Никнейм сохранён',nickEmpty:'Введите никнейм',extraSettings:'Доп. Настройки'},
+en:{welcome:'Welcome',choosePrefs:'Choose your preferences',language:'Language',theme:'Theme',continue_:'Continue',settings:'Settings',ram:'RAM',saveExit:'Save & Exit',site:'TG',launch:'Launch',terminate:'Terminate',cancel:'Cancel',loading:'Loading',done:'Done',desc:'Xlority Client - your path to total advantage in every battle.',settingsSaved:'Configuration saved',launchedCache:'Launched from cache',gameTerminated:'Game terminated',clientLaunched:'Client launched',process:'Process',nickname:'Nickname',save:'Save',nickSaved:'Nickname saved',nickEmpty:'Enter a nickname',extraSettings:'Advanced Settings'}};
 function t(k){return L[currentLang][k]||k;}
 function refreshSlider(){const s=document.getElementById('ramSlider');updateSliderBackground(s.value,s.min,s.max);}
 function applyLang(){
