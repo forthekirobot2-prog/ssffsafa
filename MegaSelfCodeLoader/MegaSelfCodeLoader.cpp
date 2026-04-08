@@ -62,7 +62,7 @@ std::wstring g_Nickname = L"Player";
 bool g_ExtraPanelOpen = false;
 
 const int MAIN_WIDTH = 980;
-const int MAIN_HEIGHT = 560;
+const int MAIN_HEIGHT = 520;
 const int EXTRA_WIDTH = 0;
 
 struct RegState { bool isInstalled; int ram; bool darkTheme; bool langRu; bool hasPrefs; std::wstring nickname; };
@@ -1189,24 +1189,24 @@ body{
 .app{
   position:relative;
   width:980px;
-  height:560px;
+  height:520px;
   border-radius:20px;
   border:1px solid var(--line);
   background:linear-gradient(180deg,#070707 0%,#050505 100%);
   box-shadow:0 34px 90px rgba(0,0,0,.7);
   overflow:hidden;
 }
-.drag-zone{position:absolute;top:0;left:0;right:130px;height:46px;z-index:20;}
-.window-controls{position:absolute;top:10px;right:12px;display:flex;gap:10px;z-index:40;}
+.drag-zone{position:absolute;top:0;left:0;right:130px;height:44px;z-index:20;}
+.window-controls{position:absolute;top:8px;right:10px;display:flex;gap:8px;z-index:40;}
 .win-btn{
-  width:36px;
-  height:30px;
-  border-radius:10px;
+  width:34px;
+  height:28px;
+  border-radius:9px;
   border:1px solid #2E2E2E;
   background:#111;
   color:#EDEDED;
-  font-size:16px;
-  font-weight:500;
+  font-size:15px;
+  font-weight:400;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -1214,86 +1214,90 @@ body{
   transition:.2s;
 }
 .win-btn:hover{background:#171717;border-color:#3A3A3A;}
-.main{padding:62px 28px 24px;height:100%;display:flex;flex-direction:column;gap:16px;}
-.top{display:flex;justify-content:space-between;align-items:center;gap:16px;}
-.brand{display:flex;align-items:center;gap:12px;}
-.logo{width:34px;height:34px;border-radius:10px;border:1px solid #353535;background:#101010;display:flex;align-items:center;justify-content:center;}
-.logo svg{width:20px;height:20px;fill:#FFF;}
-.title{font-size:52px;line-height:1.02;font-weight:500;letter-spacing:.2px;}
-.version{font-size:36px;font-weight:500;color:#F4F4F4;white-space:nowrap;}
-.desc{font-size:32px;line-height:1.16;font-weight:400;max-width:900px;color:#FAFAFA;}
-.actions{display:flex;gap:12px;align-items:center;}
+.main{padding:54px 24px 18px;height:100%;display:flex;flex-direction:column;gap:12px;}
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px;padding-bottom:10px;border-bottom:1px solid #1F1F1F;}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.logo{width:30px;height:30px;border-radius:9px;border:1px solid #353535;background:#101010;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo svg{width:18px;height:18px;fill:#FFF;}
+.title{font-size:28px;line-height:1.05;font-weight:400;letter-spacing:.1px;white-space:nowrap;}
+.version{font-size:18px;font-weight:400;color:#F4F4F4;white-space:nowrap;}
+.desc{font-size:18px;line-height:1.35;font-weight:400;max-width:900px;color:#FAFAFA;padding:8px 0 6px;}
+.actions{display:flex;gap:10px;align-items:center;}
 .btn{
-  height:58px;
-  border-radius:14px;
+  height:52px;
+  border-radius:12px;
   border:1px solid #343434;
   background:#0E0E0E;
   color:#FFF;
-  font-size:24px;
-  font-weight:500;
-  padding:0 24px;
+  font-size:20px;
+  font-weight:400;
+  padding:0 20px;
   cursor:pointer;
   transition:.2s;
 }
 .btn:hover{background:#141414;border-color:#444;}
-.btn.launch{flex:1;font-size:34px;height:70px;background:#FFF;color:#000;border-color:#FFF;}
+.btn.launch{flex:1;font-size:24px;height:58px;background:#FFF;color:#000;border-color:#FFF;}
 .btn.launch:hover{filter:brightness(.95);}
 .btn.launch.terminate{background:#171717;color:#FFF;border-color:#464646;}
 .settings-panel{
-  border-radius:16px;
+  border-radius:14px;
   border:1px solid #333;
   background:#0D0D0D;
-  padding:14px;
+  padding:12px;
   display:none;
-  gap:12px;
+  gap:10px;
 }
-.settings-panel.open{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;align-items:end;column-gap:12px;}
+.settings-panel.open{display:grid;grid-template-columns:1.25fr 1fr auto;grid-template-areas:"nick lang save" "ram ram ram";align-items:end;column-gap:10px;row-gap:10px;}
 .field{display:flex;flex-direction:column;gap:7px;min-width:0;}
-.label{font-size:14px;font-weight:500;color:var(--muted);}
+.field-nick{grid-area:nick;}
+.field-lang{grid-area:lang;}
+.field-ram{grid-area:ram;}
+.field-save{grid-area:save;}
+.label{font-size:13px;font-weight:400;color:var(--muted);}
 .input{
-  height:46px;
-  border-radius:12px;
+  height:42px;
+  border-radius:10px;
   border:1px solid #373737;
   background:#060606;
   color:#FFF;
-  padding:0 14px;
-  font-size:18px;
+  padding:0 12px;
+  font-size:16px;
   font-weight:400;
   outline:none;
 }
 .input:focus{border-color:#4A4A4A;}
-.ram{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:500;color:#D7D7D7;margin-bottom:8px;}
-.slider{width:100%;accent-color:#FFFFFF;height:12px;}
+.ram{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:400;color:#D7D7D7;margin-bottom:7px;}
+.slider{width:100%;accent-color:#FFFFFF;height:10px;}
 .langs{display:flex;gap:8px;}
 .lang-btn{
   flex:1;
-  height:46px;
-  border-radius:12px;
+  height:42px;
+  border-radius:10px;
   border:1px solid #373737;
   background:#0B0B0B;
   color:#EAEAEA;
-  font-size:16px;
-  font-weight:500;
+  font-size:15px;
+  font-weight:400;
   cursor:pointer;
 }
 .lang-btn.active{background:#FFF;color:#000;border-color:#FFF;}
-.btn.save{height:46px;font-size:18px;min-width:140px;background:#FFF;color:#000;border-color:#FFF;}
+.btn.save{height:42px;font-size:16px;min-width:120px;background:#FFF;color:#000;border-color:#FFF;}
 .loader{
-  border-radius:16px;
+  border-radius:14px;
   border:1px solid #333;
   background:#0B0B0B;
-  padding:14px;
+  padding:12px;
   display:none;
-  gap:10px;
+  gap:8px;
 }
 .loader.show{display:flex;flex-direction:column;}
-.loader-top{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:500;color:#F0F0F0;}
-.loader-sub{font-size:13px;color:#C9C9C9;font-weight:400;}
-.progress-track{height:16px;border-radius:999px;border:1px solid #3A3A3A;background:#050505;overflow:hidden;}
+.loader-top{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:400;color:#F0F0F0;}
+.loader-sub{font-size:12px;color:#C9C9C9;font-weight:400;}
+.progress-track{height:14px;border-radius:999px;border:1px solid #3A3A3A;background:#050505;overflow:hidden;}
 .progress-fill{height:100%;width:0%;background:#FFFFFF;transition:width .18s linear;}
-.error-log{margin:0;max-height:100px;overflow:auto;border-radius:10px;border:1px solid #2E2E2E;background:#070707;color:#E6E6E6;padding:10px;font-size:12px;font-family:Consolas,monospace;display:none;white-space:pre-wrap;}
+.error-log{margin:0;max-height:90px;overflow:auto;border-radius:10px;border:1px solid #2E2E2E;background:#070707;color:#E6E6E6;padding:9px;font-size:11px;font-family:Consolas,monospace;display:none;white-space:pre-wrap;}
 .loader-actions{display:flex;justify-content:flex-end;}
-.btn.cancel{height:44px;font-size:17px;padding:0 18px;}
+.btn.cancel{height:40px;font-size:15px;padding:0 16px;}
 .toast{
   position:absolute;
   right:22px;
@@ -1310,7 +1314,7 @@ body{
   transition:.25s;
 }
 .toast.show{opacity:1;transform:translateY(0);}
-.toast strong{display:block;font-size:14px;font-weight:500;margin-bottom:2px;color:#FFF;}
+.toast strong{display:block;font-size:14px;font-weight:400;margin-bottom:2px;color:#FFF;}
 .toast span{font-size:13px;font-weight:400;color:#DCDCDC;}
 </style>
 )CSS";
@@ -1340,17 +1344,17 @@ body{
     </div>
 
     <div class="settings-panel" id="settingsPanel">
-      <div class="field">
+      <div class="field field-nick">
         <label class="label" id="nickLabel">Никнейм</label>
         <input class="input" id="nicknameInput" maxlength="16" spellcheck="false" autocomplete="off" placeholder="Player" />
       </div>
 
-      <div class="field">
+      <div class="field field-ram">
         <div class="ram"><span id="ramLabel">Оперативная память</span><span id="ramValue">4028 MB</span></div>
         <input type="range" min="1024" max="16384" step="128" value="4028" class="slider" id="ramSlider" />
       </div>
 
-      <div class="field">
+      <div class="field field-lang">
         <label class="label" id="langLabel">Язык</label>
         <div class="langs">
           <button class="lang-btn active" id="langRuBtn" onclick="switchLang('ru')">RU</button>
@@ -1358,7 +1362,7 @@ body{
         </div>
       </div>
 
-      <button class="btn save" id="saveBtn" onclick="saveSettings()">Сохранить</button>
+      <button class="btn save field-save" id="saveBtn" onclick="saveSettings()">Сохранить</button>
     </div>
 
     <div class="loader" id="loaderPanel">
@@ -1393,14 +1397,14 @@ let isGameRunning=false;
 const L={
 ru:{
   desc:'Xlority — Лучший бесплатный чит клиент на Minecraft, с самым большим функционалом и лучшими обходами.',
-  settings:'Настройки',hideSettings:'Скрыть настройки',launch:'Запустить',terminate:'Завершить',
+  settings:'Настройки',launch:'Запустить',terminate:'Завершить',
   nick:'Никнейм',ram:'Оперативная память',lang:'Язык',save:'Сохранить',
   ready:'Готово к запуску',cancel:'Отменить',done:'Готово',
   process:'Клиент',cache:'Запущено из кеша',stopped:'Игра завершена',started:'Клиент запущен',saved:'Настройки сохранены',nickEmpty:'Введите никнейм'
 },
 en:{
   desc:'Xlority — The best free Minecraft cheat client, with the biggest feature set and strongest bypasses.',
-  settings:'Settings',hideSettings:'Hide settings',launch:'Launch',terminate:'Terminate',
+  settings:'Settings',launch:'Launch',terminate:'Terminate',
   nick:'Nickname',ram:'RAM',lang:'Language',save:'Save',
   ready:'Ready to launch',cancel:'Cancel',done:'Done',
   process:'Client',cache:'Launched from cache',stopped:'Game terminated',started:'Client launched',saved:'Settings saved',nickEmpty:'Enter a nickname'
@@ -1415,7 +1419,7 @@ function applyLang(){
   document.getElementById('langLabel').innerText=t('lang');
   document.getElementById('saveBtn').innerText=t('save');
   document.getElementById('cancelBtn').innerText=t('cancel');
-  settingsToggleBtn.innerText=settingsPanel.classList.contains('open')?t('hideSettings'):t('settings');
+  settingsToggleBtn.innerText=t('settings');
   launchBtn.innerText=isGameRunning?t('terminate'):t('launch');
   if(document.getElementById('loaderStatus').innerText.trim()==='')document.getElementById('loaderStatus').innerText=t('ready');
 }
@@ -1442,7 +1446,6 @@ function setRunningState(v){
 
 function toggleSettings(){
   settingsPanel.classList.toggle('open');
-  settingsToggleBtn.innerText=settingsPanel.classList.contains('open')?t('hideSettings'):t('settings');
 }
 
 function handleLaunchClick(){window.chrome.webview.postMessage('action_button');}
@@ -1468,7 +1471,6 @@ function saveSettings(){
 
   showToast(t('settings'),t('saved'));
   settingsPanel.classList.remove('open');
-  settingsToggleBtn.innerText=t('settings');
 }
 
 ramSlider.addEventListener('input',()=>{ramValue.innerText=ramSlider.value+' MB';});
@@ -1532,7 +1534,7 @@ applyLang();
 
     std::wstring html =
         L"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">"
-        L"<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap\" rel=\"stylesheet\">" +
+        L"<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap\" rel=\"stylesheet\">" +
         css1 + L"</head><body>" + htmlBody + js1 + js2 + L"</body></html>";
 
     std::wstring namePlaceholder = L"__CHEAT_NAME__";
