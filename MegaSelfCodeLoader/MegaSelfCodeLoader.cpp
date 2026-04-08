@@ -62,7 +62,7 @@ std::wstring g_Nickname = L"Player";
 bool g_ExtraPanelOpen = false;
 
 const int MAIN_WIDTH = 980;
-const int MAIN_HEIGHT = 600;
+const int MAIN_HEIGHT = 560;
 const int EXTRA_WIDTH = 0;
 
 struct RegState { bool isInstalled; int ram; bool darkTheme; bool langRu; bool hasPrefs; std::wstring nickname; };
@@ -1163,245 +1163,377 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
 
     std::wstring cheatNameDisplay = CHEAT_NAME;
 
-    std::wstring cssA = LR"CSS(
+    std::wstring css1 = LR"CSS(
 <style>
 :root{
-  --bg:#050507;
-  --panel:#0F0F17;
-  --panel-soft:#141427;
-  --line:#2A2A3F;
-  --text:#F4F4FD;
-  --muted:#AEB0C9;
-  --violet:#8F5DFF;
-  --violet-soft:#BDA7FF;
-  --ok:#39E38E;
-  --danger:#FF5D7E;
+  --bg:#000000;
+  --panel:#0A0A0A;
+  --panel-soft:#111111;
+  --line:#262626;
+  --text:#FFFFFF;
+  --muted:#CFCFCF;
 }
 *{box-sizing:border-box;}
-body{margin:0;padding:0;background:radial-gradient(circle at 0% 0%, #131327 0%, #050507 48%, #040405 100%);font-family:'Manrope',sans-serif;color:var(--text);overflow:hidden;user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
-.app{position:relative;display:flex;width:980px;height:600px;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,#090911,#050508 46%,#07070F);box-shadow:0 38px 90px rgba(0,0,0,.72),inset 0 0 0 1px rgba(255,255,255,.03);}
-.drag{position:absolute;top:0;left:0;right:132px;height:48px;z-index:20;}
+body{
+  margin:0;
+  padding:0;
+  background:#000;
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  overflow:hidden;
+  user-select:none;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+.app{
+  position:relative;
+  width:980px;
+  height:560px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,#070707 0%,#050505 100%);
+  box-shadow:0 34px 90px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.drag-zone{position:absolute;top:0;left:0;right:130px;height:46px;z-index:20;}
 .window-controls{position:absolute;top:10px;right:12px;display:flex;gap:10px;z-index:40;}
-.win-btn{width:36px;height:30px;border-radius:10px;border:1px solid #31314A;background:linear-gradient(180deg,#171727,#0D0D18);color:#E1E1F4;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;}
-.win-btn:hover{transform:translateY(-1px);border-color:var(--violet-soft);color:#FFF;}
-.win-btn.close:hover{border-color:var(--danger);color:var(--danger);}
-.sidebar{width:250px;padding:62px 18px 18px;border-right:1px solid var(--line);background:linear-gradient(180deg,#10101A,#0B0B13);display:flex;flex-direction:column;gap:16px;}
+.win-btn{
+  width:36px;
+  height:30px;
+  border-radius:10px;
+  border:1px solid #2E2E2E;
+  background:#111;
+  color:#EDEDED;
+  font-size:16px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:.2s;
+}
+.win-btn:hover{background:#171717;border-color:#3A3A3A;}
+.main{padding:62px 28px 24px;height:100%;display:flex;flex-direction:column;gap:16px;}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;}
 .brand{display:flex;align-items:center;gap:12px;}
-.logo{width:36px;height:36px;border-radius:11px;border:1px solid #34344E;background:linear-gradient(135deg,#23233A,#141426);display:flex;align-items:center;justify-content:center;}
-.logo svg{width:22px;height:22px;fill:#FFF;}
-.brand-name{font-family:'Unbounded',sans-serif;font-size:18px;color:#FFF;letter-spacing:.2px;}
-.bars{width:44px;padding:8px 10px;border-radius:12px;border:1px solid #2E2E46;background:#131322;display:flex;flex-direction:column;gap:5px;}
-.bars span{height:2px;border-radius:999px;background:linear-gradient(90deg,var(--violet),#FFF);}
-.bars span:nth-child(2){opacity:.82;} .bars span:nth-child(3){opacity:.64;}
-.badge{width:max-content;padding:6px 12px;border-radius:999px;border:1px solid rgba(57,227,142,.45);background:rgba(57,227,142,.1);color:#CDFBE4;font-size:12px;font-weight:800;letter-spacing:.35px;text-transform:uppercase;}
-.nav{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
-.nav-btn{height:42px;border-radius:12px;border:1px solid #2C2C44;background:#11111B;color:#ECECFA;text-align:left;padding:0 14px;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;}
-.nav-btn:hover{border-color:var(--violet-soft);transform:translateX(2px);} .nav-btn.active{border-color:rgba(143,93,255,.74);background:linear-gradient(90deg,rgba(143,93,255,.33),rgba(143,93,255,.1));}
-.sidebar-bottom{margin-top:auto;}
-.tg-btn{width:100%;height:46px;border-radius:13px;border:1px solid #3A3A56;background:linear-gradient(180deg,#18182A,#11111E);color:#FFF;font-size:18px;font-weight:900;cursor:pointer;transition:.2s;}
-.tg-btn:hover{border-color:var(--violet);box-shadow:0 0 0 1px rgba(143,93,255,.25),0 12px 24px rgba(143,93,255,.21);}
-.content{flex:1;padding:64px 26px 22px;position:relative;}
-.view{display:none;height:100%;flex-direction:column;gap:14px;} .view.active{display:flex;}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-.title{font-family:'Unbounded',sans-serif;font-size:33px;color:#FFF;}
-.version{font-family:'Unbounded',sans-serif;font-size:20px;color:#ECECFA;}
-.hero{border-radius:18px;border:1px solid #32324D;background:linear-gradient(120deg,rgba(143,93,255,.22) 0%, rgba(17,17,33,.9) 40%, rgba(11,11,20,.96) 100%);box-shadow:0 18px 34px rgba(0,0,0,.34);padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-height:186px;}
-.hero-head{display:flex;justify-content:space-between;align-items:flex-start;}
-.hero-badge{width:max-content;padding:7px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#F6F6FF;font-size:12px;font-weight:800;letter-spacing:.35px;text-transform:uppercase;}
-.hero-dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 14px rgba(57,227,142,.7);}
-.hero-title{font-family:'Unbounded',sans-serif;font-size:38px;line-height:1.05;color:#FFF;max-width:620px;}
-.chips{display:flex;gap:8px;flex-wrap:wrap;}
-.chip{padding:6px 11px;border-radius:10px;border:1px solid #373752;background:#111120;color:#ECECF8;font-size:13px;font-weight:700;}
-.desc{font-size:28px;line-height:1.22;font-weight:700;letter-spacing:.1px;color:#F3F3FC;}
-.home-actions{display:flex;gap:12px;}
-.ghost{flex:1;height:52px;border-radius:14px;border:1px solid #373753;background:#0E0E18;color:#F5F5FF;font-size:20px;font-weight:900;cursor:pointer;transition:.2s;}
-.ghost:hover{border-color:var(--violet-soft);}
-.launch{width:100%;height:66px;border:none;border-radius:16px;background:linear-gradient(90deg,var(--violet),var(--violet-soft));color:#FFF;font-size:34px;font-weight:900;letter-spacing:.4px;cursor:pointer;transition:.24s;}
-.launch:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(143,93,255,.36);} .launch.terminate{background:linear-gradient(90deg,#C63253,#FF5D7E);}
-.panel{height:100%;border-radius:16px;border:1px solid #33334D;background:linear-gradient(180deg,#11111C,#0D0D17);padding:16px;display:flex;flex-direction:column;gap:12px;}
-.panel-title{margin:0;font-family:'Unbounded',sans-serif;font-size:26px;color:#FFF;}
-.field{display:flex;flex-direction:column;gap:8px;}
-.label{font-size:14px;color:var(--muted);font-weight:800;letter-spacing:.2px;}
-.input{height:46px;border-radius:12px;border:1px solid #35354F;background:#0A0A14;color:#FFF;padding:0 14px;font-size:16px;font-weight:700;outline:none;} .input:focus{border-color:var(--violet-soft);}
-.range-row{display:flex;justify-content:space-between;align-items:center;}
-.range{width:100%;height:12px;accent-color:var(--violet);}
-.lang-row{display:flex;gap:8px;}
-.lang-btn{flex:1;height:42px;border-radius:10px;border:1px solid #35354F;background:#111121;color:#E8E8F3;font-weight:900;cursor:pointer;} .lang-btn.active{border-color:var(--violet);background:rgba(143,93,255,.22);color:#FFF;}
-.save{margin-top:auto;height:50px;border:none;border-radius:12px;background:#F6F6FF;color:#090910;font-size:20px;font-weight:900;cursor:pointer;}
-.status-top{display:flex;justify-content:space-between;align-items:center;}
-.status-line{font-size:18px;color:#ECECFA;font-weight:800;}
-.status-sub{font-size:13px;color:var(--muted);font-weight:700;}
-.progress-numbers{display:flex;justify-content:space-between;color:#D8D8EF;font-size:13px;font-weight:700;}
-.progress-track{height:18px;border-radius:999px;border:1px solid #373752;background:#10101D;overflow:hidden;}
-.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--violet-soft));transition:width .2s linear;}
-.tri{display:flex;gap:10px;}
-.tri-track{flex:1;height:12px;border-radius:999px;border:1px solid #393954;background:#0F0F1A;overflow:hidden;}
-.tri-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),#CAB8FF);transition:width .2s linear;}
-.error{flex:1;margin:0;border-radius:12px;border:1px solid #3C2734;background:rgba(255,93,126,.08);color:#FFB7C5;padding:12px;font-family:Consolas,monospace;font-size:12px;overflow:auto;white-space:pre-wrap;}
-.cancel{height:46px;border-radius:12px;border:1px solid rgba(255,93,126,.45);background:rgba(255,93,126,.14);color:#FFD9E1;font-size:16px;font-weight:900;cursor:pointer;}
-.toast{position:absolute;right:24px;bottom:20px;max-width:420px;padding:12px 14px;border-radius:12px;border:1px solid #3D3D5A;background:#111121;box-shadow:0 14px 30px rgba(0,0,0,.45);opacity:0;transform:translateY(20px);pointer-events:none;transition:.28s;}
-.toast.show{opacity:1;transform:translateY(0);} .toast strong{display:block;font-size:14px;color:#FFF;margin-bottom:3px;} .toast span{font-size:13px;color:#CDCEE3;}
+.logo{width:34px;height:34px;border-radius:10px;border:1px solid #353535;background:#101010;display:flex;align-items:center;justify-content:center;}
+.logo svg{width:20px;height:20px;fill:#FFF;}
+.title{font-size:52px;line-height:1.02;font-weight:500;letter-spacing:.2px;}
+.version{font-size:36px;font-weight:500;color:#F4F4F4;white-space:nowrap;}
+.desc{font-size:32px;line-height:1.16;font-weight:400;max-width:900px;color:#FAFAFA;}
+.actions{display:flex;gap:12px;align-items:center;}
+.btn{
+  height:58px;
+  border-radius:14px;
+  border:1px solid #343434;
+  background:#0E0E0E;
+  color:#FFF;
+  font-size:24px;
+  font-weight:500;
+  padding:0 24px;
+  cursor:pointer;
+  transition:.2s;
+}
+.btn:hover{background:#141414;border-color:#444;}
+.btn.launch{flex:1;font-size:34px;height:70px;background:#FFF;color:#000;border-color:#FFF;}
+.btn.launch:hover{filter:brightness(.95);}
+.btn.launch.terminate{background:#171717;color:#FFF;border-color:#464646;}
+.settings-panel{
+  border-radius:16px;
+  border:1px solid #333;
+  background:#0D0D0D;
+  padding:14px;
+  display:none;
+  gap:12px;
+}
+.settings-panel.open{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;align-items:end;column-gap:12px;}
+.field{display:flex;flex-direction:column;gap:7px;min-width:0;}
+.label{font-size:14px;font-weight:500;color:var(--muted);}
+.input{
+  height:46px;
+  border-radius:12px;
+  border:1px solid #373737;
+  background:#060606;
+  color:#FFF;
+  padding:0 14px;
+  font-size:18px;
+  font-weight:400;
+  outline:none;
+}
+.input:focus{border-color:#4A4A4A;}
+.ram{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:500;color:#D7D7D7;margin-bottom:8px;}
+.slider{width:100%;accent-color:#FFFFFF;height:12px;}
+.langs{display:flex;gap:8px;}
+.lang-btn{
+  flex:1;
+  height:46px;
+  border-radius:12px;
+  border:1px solid #373737;
+  background:#0B0B0B;
+  color:#EAEAEA;
+  font-size:16px;
+  font-weight:500;
+  cursor:pointer;
+}
+.lang-btn.active{background:#FFF;color:#000;border-color:#FFF;}
+.btn.save{height:46px;font-size:18px;min-width:140px;background:#FFF;color:#000;border-color:#FFF;}
+.loader{
+  border-radius:16px;
+  border:1px solid #333;
+  background:#0B0B0B;
+  padding:14px;
+  display:none;
+  gap:10px;
+}
+.loader.show{display:flex;flex-direction:column;}
+.loader-top{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:500;color:#F0F0F0;}
+.loader-sub{font-size:13px;color:#C9C9C9;font-weight:400;}
+.progress-track{height:16px;border-radius:999px;border:1px solid #3A3A3A;background:#050505;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#FFFFFF;transition:width .18s linear;}
+.error-log{margin:0;max-height:100px;overflow:auto;border-radius:10px;border:1px solid #2E2E2E;background:#070707;color:#E6E6E6;padding:10px;font-size:12px;font-family:Consolas,monospace;display:none;white-space:pre-wrap;}
+.loader-actions{display:flex;justify-content:flex-end;}
+.btn.cancel{height:44px;font-size:17px;padding:0 18px;}
+.toast{
+  position:absolute;
+  right:22px;
+  bottom:18px;
+  max-width:420px;
+  padding:11px 13px;
+  border-radius:12px;
+  border:1px solid #3A3A3A;
+  background:#111;
+  box-shadow:0 14px 28px rgba(0,0,0,.42);
+  opacity:0;
+  transform:translateY(18px);
+  pointer-events:none;
+  transition:.25s;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast strong{display:block;font-size:14px;font-weight:500;margin-bottom:2px;color:#FFF;}
+.toast span{font-size:13px;font-weight:400;color:#DCDCDC;}
 </style>
 )CSS";
 
     std::wstring htmlBody = LR"HTML(
 <div class="app">
-  <div class="drag"></div>
+  <div class="drag-zone"></div>
   <div class="window-controls">
     <div class="win-btn" onclick="window.chrome.webview.postMessage('minimize')">&#8211;</div>
-    <div class="win-btn close" onclick="window.chrome.webview.postMessage('close')">&#10005;</div>
+    <div class="win-btn" onclick="window.chrome.webview.postMessage('close')">&#10005;</div>
   </div>
 
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2.7 4.4 7.1v9.8l7.6 4.4 7.6-4.4V7.1z"/><path d="M8.2 8.8 12 11.3l3.8-2.5" fill="none" stroke="#09090F" stroke-width="1.8" stroke-linecap="round"/><path d="M8.2 15.2 12 12.7l3.8 2.5" fill="none" stroke="#09090F" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-      <div class="brand-name">__CHEAT_NAME__</div>
-    </div>
-    <div class="bars"><span></span><span></span><span></span></div>
-    <div class="badge" id="sideStatus">Online</div>
-
-    <div class="nav">
-      <button class="nav-btn active" id="navHomeBtn" onclick="showView('home')">Панель</button>
-      <button class="nav-btn" id="navSettingsBtn" onclick="showView('settings')">Настройки</button>
-      <button class="nav-btn" id="navStatusBtn" onclick="showView('status')">Загрузка</button>
+  <main class="main">
+    <div class="top">
+      <div class="brand">
+        <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2.7 4.4 7.1v9.8l7.6 4.4 7.6-4.4V7.1z"/><path d="M8.2 8.8 12 11.3l3.8-2.5" fill="none" stroke="#090909" stroke-width="1.8" stroke-linecap="round"/><path d="M8.2 15.2 12 12.7l3.8 2.5" fill="none" stroke="#090909" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="title">__CHEAT_NAME__</div>
+      </div>
+      <div class="version">Minecraft __MC_VERSION__</div>
     </div>
 
-    <div class="sidebar-bottom">
-      <button class="tg-btn" id="tgBtn" onclick="window.open('https://t.me/xlority')">TG</button>
+    <div class="desc" id="mainDesc">Xlority — Лучший бесплатный чит клиент на Minecraft, с самым большим функционалом и лучшими обходами.</div>
+
+    <div class="actions">
+      <button class="btn" id="settingsToggleBtn" onclick="toggleSettings()">Настройки</button>
+      <button class="btn launch" id="launchBtn" onclick="handleLaunchClick()">Запустить</button>
     </div>
-  </aside>
 
-  <main class="content">
-    <section class="view active" id="view-home">
-      <div class="top"><div class="title">__CHEAT_NAME__</div><div class="version">Minecraft __MC_VERSION__</div></div>
-
-      <div class="hero">
-        <div class="hero-head"><div class="hero-badge" id="heroBadge">СБОРКА XLORITY</div><div class="hero-dot"></div></div>
-        <div class="hero-title" id="heroTitle">Горизонтальный лаунчер нового поколения</div>
-        <div class="chips"><div class="chip" id="chip1">Черный UI</div><div class="chip" id="chip2">Белый текст</div><div class="chip" id="chip3">Фиолетовый акцент</div></div>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="field">
+        <label class="label" id="nickLabel">Никнейм</label>
+        <input class="input" id="nicknameInput" maxlength="16" spellcheck="false" autocomplete="off" placeholder="Player" />
       </div>
 
-      <div class="desc" id="mainDesc">Xlority Client - быстрый старт, чистый интерфейс и стабильная установка.</div>
-
-      <div class="home-actions">
-        <button class="ghost" id="settingsOpenBtn" onclick="showView('settings')">Настройки</button>
-        <button class="ghost" id="statusOpenBtn" onclick="showView('status')">Процесс</button>
+      <div class="field">
+        <div class="ram"><span id="ramLabel">Оперативная память</span><span id="ramValue">4028 MB</span></div>
+        <input type="range" min="1024" max="16384" step="128" value="4028" class="slider" id="ramSlider" />
       </div>
 
-      <button class="launch" id="launchBtn" onclick="handleLaunchClick()">Запустить</button>
-    </section>
-
-    <section class="view" id="view-settings">
-      <div class="panel">
-        <h3 class="panel-title" id="settingsTitle">Настройки</h3>
-
-        <div class="field">
-          <label class="label" id="nickLabel">Никнейм</label>
-          <input class="input" id="nicknameInput" maxlength="16" spellcheck="false" autocomplete="off" placeholder="Player" />
+      <div class="field">
+        <label class="label" id="langLabel">Язык</label>
+        <div class="langs">
+          <button class="lang-btn active" id="langRuBtn" onclick="switchLang('ru')">RU</button>
+          <button class="lang-btn" id="langEnBtn" onclick="switchLang('en')">EN</button>
         </div>
-
-        <div class="field">
-          <div class="range-row"><label class="label" id="ramLabel">Оперативная память</label><span class="label" id="ramValue">4028 MB</span></div>
-          <input type="range" min="1024" max="16384" step="128" value="4028" class="range" id="ramSlider" />
-        </div>
-
-        <div class="field">
-          <label class="label" id="langLabel">Язык</label>
-          <div class="lang-row">
-            <button class="lang-btn active" id="langRuBtn" onclick="switchLang('ru')">RU</button>
-            <button class="lang-btn" id="langEnBtn" onclick="switchLang('en')">EN</button>
-          </div>
-        </div>
-
-        <button class="save" id="saveBtn" onclick="saveSettings()">Сохранить</button>
       </div>
-    </section>
 
-    <section class="view" id="view-status">
-      <div class="panel">
-        <div class="status-top"><h3 class="panel-title" id="statusTitle" style="margin:0;">Установка и запуск</h3><span class="status-sub" id="statusSub">Fabric 1.21.11</span></div>
-        <div class="status-line" id="loaderStatus">Готово к запуску</div>
+      <button class="btn save" id="saveBtn" onclick="saveSettings()">Сохранить</button>
+    </div>
 
-        <div class="progress-numbers"><span id="currentMb">0.0MB</span><span id="totalMb">...</span></div>
-        <div class="progress-track"><div class="progress-fill" id="loaderFill"></div></div>
-
-        <div class="tri"><div class="tri-track"><div class="tri-fill" id="tri1"></div></div><div class="tri-track"><div class="tri-fill" id="tri2"></div></div><div class="tri-track"><div class="tri-fill" id="tri3"></div></div></div>
-
-        <pre class="error" id="errorLog"></pre>
-        <button class="cancel" id="cancelBtn" onclick="cancelInstall()">Отменить</button>
+    <div class="loader" id="loaderPanel">
+      <div class="loader-top">
+        <span id="loaderStatus">Готово к запуску</span>
+        <span class="loader-sub"><span id="currentMb">0.0MB</span> / <span id="totalMb">...</span></span>
       </div>
-    </section>
+      <div class="progress-track"><div class="progress-fill" id="loaderFill"></div></div>
+      <pre class="error-log" id="errorLog"></pre>
+      <div class="loader-actions"><button class="btn cancel" id="cancelBtn" onclick="cancelInstall()">Отменить</button></div>
+    </div>
   </main>
 
   <div class="toast" id="toast"><strong id="toastTitle">title</strong><span id="toastText">text</span></div>
 </div>
 )HTML";
 
-    std::wstring jsA = LR"JS(
+    std::wstring js1 = LR"JS(
 <script>
-const viewHome=document.getElementById('view-home');
-const viewSettings=document.getElementById('view-settings');
-const viewStatus=document.getElementById('view-status');
-const navHomeBtn=document.getElementById('navHomeBtn');
-const navSettingsBtn=document.getElementById('navSettingsBtn');
-const navStatusBtn=document.getElementById('navStatusBtn');
+const settingsPanel=document.getElementById('settingsPanel');
+const loaderPanel=document.getElementById('loaderPanel');
+const launchBtn=document.getElementById('launchBtn');
+const settingsToggleBtn=document.getElementById('settingsToggleBtn');
+const nicknameInput=document.getElementById('nicknameInput');
 const ramSlider=document.getElementById('ramSlider');
 const ramValue=document.getElementById('ramValue');
-const nicknameInput=document.getElementById('nicknameInput');
+
 let currentLang='ru';
 let currentNickname='Player';
 let isGameRunning=false;
 
 const L={
-ru:{navHome:'Панель',navSettings:'Настройки',navStatus:'Загрузка',online:'Online',heroBadge:'СБОРКА XLORITY',heroTitle:'Горизонтальный лаунчер нового поколения',chip1:'Черный UI',chip2:'Белый текст',chip3:'Фиолетовый акцент',desc:'Xlority Client - быстрый старт, чистый интерфейс и стабильная установка.',settingsOpen:'Настройки',statusOpen:'Процесс',launch:'Запустить',terminate:'Завершить',settingsTitle:'Настройки',nick:'Никнейм',ram:'Оперативная память',lang:'Язык',save:'Сохранить',statusTitle:'Установка и запуск',ready:'Готово к запуску',cancel:'Отменить',done:'Готово',process:'Процесс',cache:'Запущено из кеша',stopped:'Игра завершена',started:'Клиент запущен',saved:'Настройки сохранены',nickEmpty:'Введите никнейм'},
-en:{navHome:'Dashboard',navSettings:'Settings',navStatus:'Loader',online:'Online',heroBadge:'XLORITY BUILD',heroTitle:'New generation horizontal launcher',chip1:'Black UI',chip2:'White text',chip3:'Violet accent',desc:'Xlority Client - fast start, clean interface, and stable installation.',settingsOpen:'Settings',statusOpen:'Process',launch:'Launch',terminate:'Terminate',settingsTitle:'Settings',nick:'Nickname',ram:'RAM',lang:'Language',save:'Save',statusTitle:'Install and launch',ready:'Ready to launch',cancel:'Cancel',done:'Done',process:'Process',cache:'Launched from cache',stopped:'Game terminated',started:'Client launched',saved:'Settings saved',nickEmpty:'Enter a nickname'}
-};
+ru:{
+  desc:'Xlority — Лучший бесплатный чит клиент на Minecraft, с самым большим функционалом и лучшими обходами.',
+  settings:'Настройки',hideSettings:'Скрыть настройки',launch:'Запустить',terminate:'Завершить',
+  nick:'Никнейм',ram:'Оперативная память',lang:'Язык',save:'Сохранить',
+  ready:'Готово к запуску',cancel:'Отменить',done:'Готово',
+  process:'Клиент',cache:'Запущено из кеша',stopped:'Игра завершена',started:'Клиент запущен',saved:'Настройки сохранены',nickEmpty:'Введите никнейм'
+},
+en:{
+  desc:'Xlority — The best free Minecraft cheat client, with the biggest feature set and strongest bypasses.',
+  settings:'Settings',hideSettings:'Hide settings',launch:'Launch',terminate:'Terminate',
+  nick:'Nickname',ram:'RAM',lang:'Language',save:'Save',
+  ready:'Ready to launch',cancel:'Cancel',done:'Done',
+  process:'Client',cache:'Launched from cache',stopped:'Game terminated',started:'Client launched',saved:'Settings saved',nickEmpty:'Enter a nickname'
+}};
 
 function t(k){return (L[currentLang]&&L[currentLang][k])?L[currentLang][k]:k;}
-function setNav(name){navHomeBtn.classList.toggle('active',name==='home');navSettingsBtn.classList.toggle('active',name==='settings');navStatusBtn.classList.toggle('active',name==='status');}
-function showView(name){viewHome.classList.toggle('active',name==='home');viewSettings.classList.toggle('active',name==='settings');viewStatus.classList.toggle('active',name==='status');setNav(name);}
-function setLangButtons(){const ru=(currentLang==='ru');document.getElementById('langRuBtn').classList.toggle('active',ru);document.getElementById('langEnBtn').classList.toggle('active',!ru);}
+
 function applyLang(){
-  navHomeBtn.innerText=t('navHome');navSettingsBtn.innerText=t('navSettings');navStatusBtn.innerText=t('navStatus');document.getElementById('sideStatus').innerText=t('online');
-  document.getElementById('heroBadge').innerText=t('heroBadge');document.getElementById('heroTitle').innerText=t('heroTitle');document.getElementById('chip1').innerText=t('chip1');document.getElementById('chip2').innerText=t('chip2');document.getElementById('chip3').innerText=t('chip3');document.getElementById('mainDesc').innerText=t('desc');
-  document.getElementById('settingsOpenBtn').innerText=t('settingsOpen');document.getElementById('statusOpenBtn').innerText=t('statusOpen');
-  document.getElementById('settingsTitle').innerText=t('settingsTitle');document.getElementById('nickLabel').innerText=t('nick');document.getElementById('ramLabel').innerText=t('ram');document.getElementById('langLabel').innerText=t('lang');document.getElementById('saveBtn').innerText=t('save');
-  document.getElementById('statusTitle').innerText=t('statusTitle');if(document.getElementById('loaderStatus').innerText.trim()===''){document.getElementById('loaderStatus').innerText=t('ready');}
+  document.getElementById('mainDesc').innerText=t('desc');
+  document.getElementById('nickLabel').innerText=t('nick');
+  document.getElementById('ramLabel').innerText=t('ram');
+  document.getElementById('langLabel').innerText=t('lang');
+  document.getElementById('saveBtn').innerText=t('save');
   document.getElementById('cancelBtn').innerText=t('cancel');
-  const lb=document.getElementById('launchBtn');lb.innerText=isGameRunning?t('terminate'):t('launch');
+  settingsToggleBtn.innerText=settingsPanel.classList.contains('open')?t('hideSettings'):t('settings');
+  launchBtn.innerText=isGameRunning?t('terminate'):t('launch');
+  if(document.getElementById('loaderStatus').innerText.trim()==='')document.getElementById('loaderStatus').innerText=t('ready');
 }
-function showToast(title,text){const toast=document.getElementById('toast');document.getElementById('toastTitle').innerText=title;document.getElementById('toastText').innerText=text;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600);}
-function setRunningState(v){isGameRunning=v;const b=document.getElementById('launchBtn');b.classList.toggle('terminate',v);b.innerText=v?t('terminate'):t('launch');}
-function tri(p){const x=Math.max(0,Math.min(100,Number(p)||0));document.getElementById('tri1').style.width=Math.min(100,x*3)+'%';document.getElementById('tri2').style.width=Math.min(100,Math.max(0,(x-33.33)*3))+'%';document.getElementById('tri3').style.width=Math.min(100,Math.max(0,(x-66.66)*3))+'%';}
-function startLoadingUI(){showView('status');document.getElementById('loaderFill').style.width='0%';document.getElementById('loaderStatus').innerText=t('ready');document.getElementById('errorLog').innerText='';tri(0);}
-function updateProgress(p,c,tot,s){const x=Math.max(0,Math.min(100,Number(p)||0));document.getElementById('loaderFill').style.width=x+'%';document.getElementById('currentMb').innerText=c||'0.0MB';document.getElementById('totalMb').innerText=tot||'...';document.getElementById('loaderStatus').innerText=s||t('statusTitle');tri(x);}
-function finishLoading(){document.getElementById('loaderStatus').innerText=t('done');document.getElementById('loaderFill').style.width='100%';tri(100);setTimeout(()=>{showView('home');setRunningState(true);showToast(t('done'),t('started'));},1200);}
-function showError(m){const el=document.getElementById('errorLog');const line=(m||'').trim();if(!line)return;el.innerText+=line+'\n';el.scrollTop=el.scrollHeight;}
+
+function showToast(title,text){
+  const toast=document.getElementById('toast');
+  document.getElementById('toastTitle').innerText=title;
+  document.getElementById('toastText').innerText=text;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),2600);
+}
+
+function cleanNick(v){
+  let n=(v||'').trim().replace(/[^A-Za-z0-9_]/g,'');
+  if(n.length>16)n=n.substring(0,16);
+  return n;
+}
+
+function setRunningState(v){
+  isGameRunning=v;
+  launchBtn.classList.toggle('terminate',v);
+  launchBtn.innerText=v?t('terminate'):t('launch');
+}
+
+function toggleSettings(){
+  settingsPanel.classList.toggle('open');
+  settingsToggleBtn.innerText=settingsPanel.classList.contains('open')?t('hideSettings'):t('settings');
+}
+
 function handleLaunchClick(){window.chrome.webview.postMessage('action_button');}
 function cancelInstall(){window.chrome.webview.postMessage('cancel_install');}
-function switchLang(lang){currentLang=(lang==='en')?'en':'ru';setLangButtons();applyLang();window.chrome.webview.postMessage('set_lang:'+currentLang);}
-function cleanNick(v){let n=(v||'').trim().replace(/[^A-Za-z0-9_]/g,'');if(n.length>16)n=n.substring(0,16);return n;}
-function saveSettings(){let nick=cleanNick(nicknameInput.value);if(nick.length===0){showToast(t('nick'),t('nickEmpty'));return;}nicknameInput.value=nick;currentNickname=nick;window.chrome.webview.postMessage('save_nick:'+nick);const ram=Number(ramSlider.value)||4028;window.chrome.webview.postMessage('save_ram:'+ram);showToast(t('settingsTitle'),t('saved'));showView('home');}
+
+function switchLang(lang){
+  currentLang=(lang==='en')?'en':'ru';
+  document.getElementById('langRuBtn').classList.toggle('active',currentLang==='ru');
+  document.getElementById('langEnBtn').classList.toggle('active',currentLang==='en');
+  applyLang();
+  window.chrome.webview.postMessage('set_lang:'+currentLang);
+}
+
+function saveSettings(){
+  let nick=cleanNick(nicknameInput.value);
+  if(nick.length===0){showToast(t('nick'),t('nickEmpty'));return;}
+  nicknameInput.value=nick;
+  currentNickname=nick;
+  window.chrome.webview.postMessage('save_nick:'+nick);
+
+  const ram=Number(ramSlider.value)||4028;
+  window.chrome.webview.postMessage('save_ram:'+ram);
+
+  showToast(t('settings'),t('saved'));
+  settingsPanel.classList.remove('open');
+  settingsToggleBtn.innerText=t('settings');
+}
+
 ramSlider.addEventListener('input',()=>{ramValue.innerText=ramSlider.value+' MB';});
-window.chrome.webview.addEventListener('message',(event)=>{const msg=event.data;
- if(msg.type==='progress'){updateProgress(msg.percent,msg.current,msg.total,msg.status);}else if(msg.type==='finish_install'){finishLoading();}
- else if(msg.type==='set_ram'){const v=Number(msg.value)||4028;ramSlider.value=v;ramValue.innerText=v+' MB';}
- else if(msg.type==='launch_success'){setRunningState(true);showToast(t('process'),t('cache'));}
- else if(msg.type==='start_load'){startLoadingUI();}
- else if(msg.type==='install_canceled'){setRunningState(false);showToast(t('statusTitle'),t('cancel'));showView('home');}
- else if(msg.type==='process_stopped'){setRunningState(false);showToast(t('process'),t('stopped'));}
- else if(msg.type==='error'){showError(msg.message);}
- else if(msg.type==='init_settings'){if(msg.lang==='en'||msg.lang==='ru')currentLang=msg.lang;if(typeof msg.nickname==='string'&&msg.nickname.length>0){currentNickname=msg.nickname;nicknameInput.value=msg.nickname;}setLangButtons();applyLang();}
- else if(msg.type==='set_nickname'){if(typeof msg.value==='string'&&msg.value.length>0){currentNickname=msg.value;nicknameInput.value=msg.value;}}
+)JS";
+
+    std::wstring js2 = LR"JS(
+window.chrome.webview.addEventListener('message',(event)=>{
+  const msg=event.data;
+  if(msg.type==='progress'){
+    loaderPanel.classList.add('show');
+    const p=Math.max(0,Math.min(100,Number(msg.percent)||0));
+    document.getElementById('loaderFill').style.width=p+'%';
+    document.getElementById('currentMb').innerText=msg.current||'0.0MB';
+    document.getElementById('totalMb').innerText=msg.total||'...';
+    document.getElementById('loaderStatus').innerText=msg.status||t('ready');
+  } else if(msg.type==='finish_install'){
+    document.getElementById('loaderStatus').innerText=t('done');
+    document.getElementById('loaderFill').style.width='100%';
+    setTimeout(()=>{loaderPanel.classList.remove('show');setRunningState(true);showToast(t('done'),t('started'));},1200);
+  } else if(msg.type==='set_ram'){
+    const v=Number(msg.value)||4028;
+    ramSlider.value=v;
+    ramValue.innerText=v+' MB';
+  } else if(msg.type==='launch_success'){
+    setRunningState(true);
+    showToast(t('process'),t('cache'));
+  } else if(msg.type==='start_load'){
+    loaderPanel.classList.add('show');
+    document.getElementById('loaderStatus').innerText=t('ready');
+    document.getElementById('loaderFill').style.width='0%';
+    const err=document.getElementById('errorLog');
+    err.style.display='none';
+    err.innerText='';
+  } else if(msg.type==='install_canceled'){
+    loaderPanel.classList.remove('show');
+    setRunningState(false);
+    showToast(t('process'),t('cancel'));
+  } else if(msg.type==='process_stopped'){
+    setRunningState(false);
+    showToast(t('process'),t('stopped'));
+  } else if(msg.type==='error'){
+    const err=document.getElementById('errorLog');
+    err.style.display='block';
+    err.innerText+=(msg.message||'')+'\n';
+    err.scrollTop=err.scrollHeight;
+  } else if(msg.type==='init_settings'){
+    if(msg.lang==='en'||msg.lang==='ru')currentLang=msg.lang;
+    if(typeof msg.nickname==='string'&&msg.nickname.length>0){currentNickname=msg.nickname;nicknameInput.value=msg.nickname;}
+    document.getElementById('langRuBtn').classList.toggle('active',currentLang==='ru');
+    document.getElementById('langEnBtn').classList.toggle('active',currentLang==='en');
+    applyLang();
+  } else if(msg.type==='set_nickname'){
+    if(typeof msg.value==='string'&&msg.value.length>0){currentNickname=msg.value;nicknameInput.value=msg.value;}
+  }
 });
-showView('home');setLangButtons();applyLang();ramValue.innerText=ramSlider.value+' MB';document.getElementById('loaderStatus').innerText=t('ready');tri(0);
+
+ramValue.innerText=ramSlider.value+' MB';
+applyLang();
 </script>
 )JS";
 
     std::wstring html =
         L"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">"
-        L"<link href=\"https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Unbounded:wght@500;700;800&display=swap\" rel=\"stylesheet\">" +
-        cssA + L"</head><body>" + htmlBody + jsA + L"</body></html>";
+        L"<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap\" rel=\"stylesheet\">" +
+        css1 + L"</head><body>" + htmlBody + js1 + js2 + L"</body></html>";
 
     std::wstring namePlaceholder = L"__CHEAT_NAME__";
     size_t pos = 0;
@@ -1533,4 +1665,5 @@ showView('home');setLangButtons();applyLang();ramValue.innerText=ramSlider.value
     MSG msg; while (GetMessage(&msg, nullptr, 0, 0)) { TranslateMessage(&msg); DispatchMessage(&msg); }
     return (int)msg.wParam;
 }
+
 
