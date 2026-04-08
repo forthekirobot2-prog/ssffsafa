@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="MegaSelfCodeLoader/MegaSelfCodeLoader.vcxproj" Id="06e83e56-5740-4cd4-b134-d18538032f68" />
+</Solution>
